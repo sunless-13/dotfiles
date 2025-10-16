@@ -90,7 +90,7 @@
     (dired-recursive-deletes 'always)
     (shell-command-guess-open "mpv")) ;; used by dired-do-open (emacs-30)
 #+end_src
-* TODO org
+* org
 add property headers for mkdirp and tangle
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package org
@@ -240,7 +240,7 @@ add property headers for mkdirp and tangle
   (setq proced-auto-update-interval 1)
   (setq proced-descend t))
 #+end_src
-** ERROR spelling
+** spelling
 cannot find ispell
 #+begin_src emacs-lisp
 (use-package flyspell
@@ -300,6 +300,7 @@ cannot find ispell
           ("C-h x" . helpful-command)))
 #+end_src
 ** chess
+idk why stockfish isn't playing
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
   (use-package chess
       :custom
@@ -363,7 +364,7 @@ cannot find ispell
     :init
     (evil-collection-init))
 #+end_src
-** TODO exwm
+** exwm
 efficient functions call instead of lambdas
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
   (use-package exwm
@@ -468,17 +469,14 @@ efficient functions call instead of lambdas
   (use-package corfu
     :hook
     (prog-mode . corfu-mode)
-    (shell-mode . corfu-mode)
-    (eshell-mode . corfu-mode)
+    (org-mode . corfu-mode)
     (corfu-mode-hook . (lambda ()
                 (setq-local completion-styles '(basic)
                             completion-category-overrides nil
                             completion-category-defaults nil)))
     :custom
     (corfu-auto t)
-    (corfu-quit-no-match 'separator)
-    :init
-    (global-corfu-mode))
+    (corfu-quit-no-match 'separator))
    (use-package dabbrev
      :bind (("M-/" . dabbrev-completion)
            ("C-M-/" . dabbrev-expand))
