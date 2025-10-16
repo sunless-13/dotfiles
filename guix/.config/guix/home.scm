@@ -36,6 +36,7 @@
      "stow"
      "yt-dlp"
      "icecat-minimal"
+     "qutebrowser"
      "mpv"
      ;; emacs
      "emacs"
