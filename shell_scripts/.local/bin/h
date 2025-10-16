@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+#====================================================#
+# title       : book viewer                          #
+# author      : sunless47                            #
+# description : view books from the 'hell' directory #
+#====================================================#
+
+# error handling (set -euo pipefail)
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# get all books in hell directory
+hell() {
+  # assign to variable hell directory
+  DIRE=$HOME/hell
+
+  # selecting topic
+  TOPIC=$( \
+    find "${DIRE}"/* -type d | \
+    awk -F / '{print $5}' | \
+    fzf --wrap --wrap-sign='> ' --exit-0 \
+  )
+
+  # stop if no input
+  if [[ -n $TOPIC ]]; then
+  
+    # selecting book
+    BOOK=$( \
+      find "${DIRE}"/"${TOPIC}" -type f | \
+      awk -F / '{print $6}' | \
+      fzf --wrap --wrap-sign='> ' --exit-0 \
+    )
+
+    # stop if no input
+    if [[ -n $BOOK ]]; then
+      # opening with zathura pdf viewer
+      zathura "${DIRE}"/"${TOPIC}"/"${BOOK}" 2> /dev/null &
+    fi
+  fi
+
+}
+
+# calling function
+hell

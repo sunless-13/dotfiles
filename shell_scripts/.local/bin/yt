@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+#===================================================#
+# title       : configs editor                      #
+# author      : sunless47                           #
+# description : all user configs located in .config #
+#===================================================#
+
+# error handling (set -euo pipefail)
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# opening with helix
+# $HOME/.config/helix/ignore deals with files i don't want to open
+ytfzf \
+--sort \
+$@

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+#===============================================#
+# title       : editing scripts                 #
+# author      : sunless17                       #
+# description : tinker with my personal scripts #
+#===============================================#
+
+# error handling (set -euo pipefail)
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# using helix's file picker
+emacs -nw $HOME/.local/bin

@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#=================================================================#
+# title       : local ai                                          #
+# author      : sunless47                                         #
+# description : run local llm with ollama from a docker container #
+#=================================================================#
+
+# error handling (set -euo pipefail)
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# start local ai from the ollama container
+llm() {
+		# create docker container
+		# docker create \
+		# 				--volume=/home/sunless/stash/ollama:/root/.ollama \
+		# 				--publish=11434:11434 \
+		# 				--name=ai \
+		# 				ollama/ollama
+
+		# start the created container
+		docker start ai
+
+		# execute local llm
+		docker exec \
+					 --interactive=true \
+					 --tty=true \
+					 ai \
+					 ollama run deepseek-r1:1.5b
+					 # ollama run qwen2.5-coder:1.5b
+}
+
+# execute function
+llm

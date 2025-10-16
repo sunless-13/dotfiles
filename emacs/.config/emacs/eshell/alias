@@ -1,0 +1,6 @@
+alias l clear-scrollback
+alias ls ls --almost-all $@*
+alias f find-file $1
+alias fo find-file-other-window $1
+alias d dired $1
+alias u guix home reconfigure ~/.config/guix/home.scm

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+#=====================================================#
+# title       : specific book viewer                  #
+# author      : sunless47                             #
+# description : view books from the current directory #
+#=====================================================#
+
+# error handling (set -euo pipefail)
+set -o errexit
+set -o nounset
+#set -o pipefail
+
+# get specific book in the directory
+specific-book() {
+  # list everything with fzf
+  BOOK=$(find *.epub *.pdf *.cbz 2> /dev/null | fzf)
+
+  # stop if no input
+  if [[ -z $BOOK ]]; then
+    exit
+  fi
+
+  # zathura
+  zathura "${BOOK}" 2> /dev/null &
+}
+
+# calling function
+specific-book

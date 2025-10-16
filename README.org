@@ -1,0 +1,11 @@
+* my dotfiles
+use =stow= to setup symlinks
+the setup with =guix home reconfigure home.scm= to track it
+#+begin_src bash
+stow \
+      --verbose \ # see results, useful with --no
+      --no \ # testing purposes
+      --adopt \ # replace existing files with symlinks
+      --target=$HOME \ # where to place the symlinks
+      [FOLDER]
+#+end_src

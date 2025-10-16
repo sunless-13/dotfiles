@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+#=====================================================#
+# title       : play video                            #
+# author      : sunless13                             #
+# description : play video the same current directory #
+#=====================================================#
+
+# error handling (set -euo pipefail)
+#set -o errexit
+#set -o nounset
+# set -o pipefail
+
+# play video within the directory
+play-vid() {
+  # list everything with fzf
+  CHOSEN_VIDEO=$( \
+										find *.mp4 \
+										2> /dev/null | \
+										fzf \
+  )
+
+	# stop if no input else play with mpv
+  if [[ -n $CHOSEN_VIDEO ]] ; then
+    mpv \
+				--no-terminal \
+				--speed=3 "${CHOSEN_VIDEO}" &
+  fi
+}
+
+# calling function
+play-vid

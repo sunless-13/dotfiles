@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+#=================================================================#
+# title       : files and directory deleter                       #
+# author      : sunless47                                         #
+# description : delete files and directories whether empty or not #
+#=================================================================#
+
+# error handling (set -euo pipefail)
+set -o errexit
+set -o nounset
+set -o pipefail
+
+
+# delete files and folders in the directory
+multiple-files-deleter() {
+		# list all files and folders in the directory
+		ls \
+				--almost-all \
+				--reverse \
+				--sort=size \
+				--quoting-style=shell | \
+		# select and delete 
+		fzf \
+				--multi | \
+				xargs \
+						--open-tty \
+						--no-run-if-empty \
+						--verbose \
+				rm \
+						--verbose \
+						--recursive
+}
+
+# calling function
+multiple-files-deleter

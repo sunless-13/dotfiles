@@ -1,0 +1,17 @@
+[window]
+padding = { x = 3, y = 3 }
+opacity = 0.2
+decorations = "None"
+blur = true
+[font]
+normal = { family = "HackNerdFontMono", style = "Regular" }
+size = 8.0
+[cursor]
+style = { shape = "underline", blinking = "never" }
+[mouse]
+hide_when_typing = true
+[keyboard]
+bindings = [
+  { key = "PageUp", action = "ScrollLineUp" },
+  { key = "PageDown", action = "ScrollLineDown" },
+]

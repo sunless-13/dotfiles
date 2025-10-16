@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+#==========================================================#
+# title       : view scraped websites                      #
+# author      : sunless47                                  #
+# description : view offline websites scraped with httrack #
+#==========================================================#
+
+# error handling (set -euo pipefail)
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# function to open offline websites located in mine folder
+offline-websites() {
+  # assign variable to mine directory
+  WWW=$HOME/mine/
+
+  # selecting with fzf
+  OFF_WEB=$( ls ${WWW} |  fzf )
+
+  # stop if no input
+  if [[ -z $OFF_WEB ]]; then
+    exit
+  fi
+
+	# browser
+	BROWSER=qutebrowser
+
+  # opening with browser
+  $BROWSER ${WWW}${OFF_WEB}/index.html 2> /dev/null & 
+}
+
+# calling function
+offline-websites

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+#=======================================#
+# title       : video downloader        #
+# author      : sunless47               #
+# description : download videos at 480p #
+#=======================================#
+
+# error handling (set -euo pipefail)
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# download with yt-dlp
+yt-dlp \
+		--retries 3 \
+		--no-keep-fragments \
+		--quiet \
+		--progress \
+		-t mp4 \
+		--format-sort "res:480" \
+		--audio-quality 0 \
+		--embed-subs \
+		--embed-chapters \
+		"$1" 

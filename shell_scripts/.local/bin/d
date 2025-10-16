@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+#==================================================================#
+# title       : offline arch wiki                                  #
+# author      : sunless47                                          #
+# description : view the offline webpages with the desired browser #
+#==================================================================#
+
+# browser of choice
+BROWSER=zen-browser
+
+# error handling (set -euo pipefail)
+set -o errexit
+set -o nounset
+set -o pipefail
+
+# choose arch docs in local storage
+arch-docs() {
+
+		# initialize arch docs directory, must be downloaded from the AUR btw
+		DIRE=/usr/share/doc/arch-wiki/html/en/
+
+		# selecting with fzf
+		DOC=$( \
+				find ${DIRE}*.html -type f | \
+				awk -F / '{print $8}' | \
+				fzf \
+		)
+
+		# stop if no input
+		if [[ -z $DOC ]]; then
+				exit
+		fi
+
+		# opening with browser
+		$BROWSER ${DIRE}${DOC} 2> /dev/null & 
+}
+
+# calling function
+arch-docs
