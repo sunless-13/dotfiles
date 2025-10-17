@@ -25,12 +25,11 @@
      "sqlite"
      "tree"
      "fontconfig"
-     "font-awesome"
-     "font-hack"
-     "font-google-noto-sans-cjk"
+     "font-jetbrains-mono"
      "font-google-noto-emoji"
      ;; noice apps
      "eza"
+     "direnv"
      "bat"
      "aria2"
      "stow"
@@ -105,7 +104,7 @@
               ("GIT_SSL_CAINFO" . "$SSL_CERT_FILE")
               ("CURL_CA_BUNDLE" . "$SSL_CERT_FILE")
               ))
-          (bashrc (list (local-file "/home/sunless/alchemy/dotfiles/shell/bashrc" ".bashrc")))
+          (bashrc (list (local-file "/home/sunless/alchemy/dotfiles/shell/.bashrc" "bashrc")))
         )
       )
       (service home-dotfiles-service-type
@@ -118,9 +117,6 @@
                "emacs"
                "mpv"
                "guix"
-               "shell"
-               "gtk-3.0"
-               "gtk-4.0"
                ))
           )
       )

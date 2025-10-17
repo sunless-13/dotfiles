@@ -58,8 +58,8 @@
     (global-prettify-symbols-mode)
     (global-auto-revert-mode)
     (load-theme 'modus-vivendi-tritanopia)
-    ;; (add-to-list 'default-frame-alist
-                ;; '(font . "Hack Nerd Font Mono-10"))
+    (add-to-list 'default-frame-alist
+                '(font . "DejaVu Sans Mono-10"))
     ;; speed
      (defun start/display-startup-time ()
        (message "Emacs loaded in %s with %d garbage collections."
@@ -101,8 +101,7 @@ add property headers for mkdirp and tangle
   (org-ellipsis " ▼")
   (org-log-done 'time)
   (org-startup-folded 'content)
-  (org-agenda-files '("~/alchemy/insanity/"
-                      "~/alchemy/dotfiles/emacs/.config/emacs/README.org"))
+  (org-agenda-files '("~/alchemy/insanity/"))
   (org-src-fontify-natively t)
   (org-src-preserve-indentation t)
   (org-todo-keywords
@@ -234,11 +233,9 @@ add property headers for mkdirp and tangle
 ** proced
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package proced
-  :config
-  (setq proced-auto-update-flag 'visible) ; Emacs 30 supports more the `visible' value
-  (setq proced-enable-color-flag t) ; Emacs 29
-  (setq proced-auto-update-interval 1)
-  (setq proced-descend t))
+  :custom
+  (proced-auto-update-flag t)
+  (proced-enable-color-flag t))
 #+end_src
 ** spelling
 cannot find ispell
