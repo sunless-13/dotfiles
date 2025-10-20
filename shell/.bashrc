@@ -9,4 +9,4 @@ fi
 shopt -s autocd cdspell dirspell
 
 # direnv
-# eval "$(direnv hook bash)"
+eval "$(direnv hook bash)"

@@ -12,6 +12,8 @@
   (packages
    (specifications->packages
     (list
+     ;; essentials
+     "nss-certs"
      "openssh"
      "dbus"
      "brightnessctl"
@@ -24,23 +26,24 @@
      "git"
      "sqlite"
      "tree"
-     "fontconfig"
-     "font-jetbrains-mono"
-     "font-google-noto-emoji"
-     ;; noice apps
+     "which"
      "eza"
+     "grep"
      "direnv"
      "bat"
-     "aria2"
      "stow"
+     "fontconfig"
+     "font-hack"
+     "font-google-noto-emoji"
+     ;; noice apps
+     "aria2"
      "yt-dlp"
-     "icecat-minimal"
-     "qutebrowser"
      "mpv"
+     "icecat-minimal"
      ;; emacs
      "emacs"
      "emacs-exwm"
-     ;; essential
+     ;; basic
      "emacs-evil"
      "emacs-evil-collection"
      "emacs-guix"
@@ -57,22 +60,23 @@
      "emacs-org-superstar"
      "emacs-emojify"
      "emacs-rainbow-mode"
-     "emacs-all-the-icons"
-     "emacs-all-the-icons-dired"
+     ;; "emacs-all-the-icons"
+     ;; "emacs-all-the-icons-dired"
      ;; dev
+     "emacs-envrc"
      "emacs-markdown-mode"
      "emacs-gptel"
      "emacs-eat"
-     "emacs-magit"
-     "emacs-vertico"
-     "emacs-vertico-posframe"
-     "emacs-consult"
-     "emacs-orderless"
-     "emacs-corfu"
+     ;; "emacs-vertico"
+     ;; "emacs-vertico-posframe"
+     ;; "emacs-avy"
+     ;; "emacs-consult"
+     ;; "emacs-orderless"
+     ;; "emacs-corfu"
      "emacs-cape"
      "emacs-marginalia"
-     "emacs-avy"
      "emacs-pulsar"
+     "ispell"
      ;; misc
      "emacs-yeetube"
      "emacs-org-drill"
@@ -80,6 +84,39 @@
      "chess" ;; gnuchess (default is phalanx)
      "stockfish"
      "emacs-sudoku"
+     ;; react dev
+     "gcc-toolchain"
+     "bash-minimal"
+     "coreutils"
+     "sed"
+     "tar"
+     "gzip"
+     "findutils"
+     "gawk"
+     "vscodium"
+     ;; rust dev
+     "xz"
+     "libgccjit"
+     "at-spi2-core"
+     "atkmm"
+     "cairo"
+     "gdk-pixbuf"
+     "glib"
+     "gtk"
+     "harfbuzz"
+     "librsvg"
+     "libsoup"
+     "pango"
+     "openssl"
+     "webkitgtk"
+     ;; macroquad
+     "pkg-config"
+     "libx11"
+     "libxi"
+     "libxcursor"
+     "libxrandr"
+     "mesa-opencl"
+     "alsa-lib"
      )))
   ;; add dotfiles
   (services
@@ -105,6 +142,7 @@
               ("CURL_CA_BUNDLE" . "$SSL_CERT_FILE")
               ))
           (bashrc (list (local-file "/home/sunless/alchemy/dotfiles/shell/.bashrc" "bashrc")))
+          (bash-profile (list (local-file "/home/sunless/alchemy/dotfiles/shell/.bash-profile" "bash-profile")))
         )
       )
       (service home-dotfiles-service-type
