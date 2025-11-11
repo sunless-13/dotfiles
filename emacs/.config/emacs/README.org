@@ -143,159 +143,6 @@ add property headers for mkdirp and tangle
   :init
   (global-emojify-mode))
 #+end_src
-** evil
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-;; (use-package evil
-;;   :bind
-;;   (:map evil-normal-state-map
-;;         ("g l" . evil-end-of-line)
-;;         ("g h" . evil-beginning-of-visual-line)
-;;    :map evil-motion-state-map
-;;         ("RET" . nil)
-;;         ("SPC" . nil)
-;;         ("TAB" . nil))
-;;   :custom
-;;   (evil-want-integration t)
-;;   (evil-respect-visual-line-mode t)
-;;   (evil-want-keybinding nil)
-;;   (evil-undo-system 'undo-redo)
-;;   (evil-shift-width 2)
-;;   :init
-;;   (evil-mode))
-;; (use-package evil-collection
-;;   :after evil
-;;   :config
-;;   ;; dired
-;;   (evil-collection-define-key 'normal 'dired-mode-map
-;;     "h" 'dired-up-directory
-;;     "l" 'dired-find-file
-;;     "L" 'dired-do-open)
-;;   ;; info
-;;   (evil-collection-define-key 'normal 'Info-mode-map
-;;     "h" 'Info-up
-;;     "l" 'Info-follow-nearest-node)
-;;   ;; emms
-;;   (evil-collection-define-key 'normal 'emms-playlist-mode-map
-;;     "h" 'emms-shuffle
-;;     "l" 'emms-playlist-mode-play-smart)
-;;   :init
-;;   (evil-collection-init))
-;; (use-package evil-leader
-;;   :after evil
-;;   :custom
-;;   (evil-leader/leader "<SPC>")
-;;   :config
-;;   (evil-leader/set-key
-;;     "l" 'windmove-right
-;;     "h" 'windmove-left
-;;     "k" 'windmove-up
-;;     "j" 'windmove-down
-;;     "H" 'windmove-swap-states-left
-;;     "L" 'windmove-swap-states-right
-;;     "J" 'windmove-swap-states-down
-;;     "K" 'windmove-swap-states-up
-;;     "q" '(lambda () (interactive) (kill-buffer (current-buffer)))
-;;     "s" '(lambda () (interactive) (split-window-below) (window-swap-states))
-;;     "v" '(lambda () (interactive) (split-window-right) (window-swap-states))
-;;     "z" '(lambda () (interactive) (dired "~/alchemy/insanity/"))
-;;     "c" '(lambda () (interactive)
-;;            (find-file "~/alchemy/dotfiles/emacs/.config/emacs/README.org"))
-;;     "r" '(lambda () (interactive)
-;;            (org-babel-tangle-file "~/alchemy/dotfiles/emacs/.config/emacs/README.org")
-;;            (load-file user-init-file))
-;;     "x" '(lambda () (interactive)
-;;            (find-file "~/alchemy/dotfiles/guix/.config/guix/home.scm"))
-;;     "e" '(lambda () (interactive) (eshell 'N))
-;;     "b" 'switch-to-buffer
-;;     "i" 'delete-window
-;;     "w" 'save-some-buffers
-;;     "f" 'find-file
-;;     "a" 'org-agenda
-;;     "n" 'newsticker-show-news
-;;     "y" 'org-store-link
-;;     "t" 'org-insert-link
-;;     "/" 'comment-line
-;;     "o" 'guix-packages-by-name
-;;     "p" 'app-launcher-run-app
-;;     "d" 'diary)
-;;   :init
-;;   (global-evil-leader-mode))
-#+end_src
-** exwm
-efficient functions call instead of lambdas
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-;; (use-package exwm
-;;   :hook
-;;   (exwm-update-class-hook . (lambda ()
-;;                               (exwm-workspace-rename-buffer exwm-class-name)))
-;;   :custom
-;;   (browse-url-browser-function 'browse-url-generic)
-;;   (browse-url-generic-program "icecat")
-;;   (exwm-workspace-number 9)
-;;   (exwm-input-global-keys
-;;    `(
-;;      ;; buffer management
-;;      ([?\s-b] . switch-to-buffer)
-;;      ([?\s-i] . delete-window)
-;;      ([?\s-w] . save-some-buffers)
-;;      ([?\s-q] . (lambda () (interactive) (kill-buffer (current-buffer))))
-;;      ([?\s-s] . (lambda () (interactive) (split-window-below) (window-swap-states)))
-;;      ([?\s-v] . (lambda () (interactive) (split-window-right) (window-swap-states)))
-;;      ([?\s-c] . (lambda ()
-;;                   (interactive)
-;;                   (find-file "~/alchemy/dotfiles/emacs/.config/emacs/README.org")))
-;;      ([?\s-r] . (lambda ()
-;;                   (interactive)
-;;                   (org-babel-tangle-file "~/alchemy/dotfiles/emacs/.config/emacs/README.org")
-;;                   (load-file user-init-file)))
-;;      ([?\s-x] . (lambda ()
-;;                   (interactive)
-;;                   (find-file "~/alchemy/dotfiles/guix/.config/guix/home.scm")))
-;;      ;; move windows
-;;      ([?\s-l] . windmove-right)
-;;      ([?\s-h] . windmove-left)
-;;      ([?\s-k] . windmove-up)
-;;      ([?\s-j] . windmove-down)
-;;      ([?\s-H] . windmove-swap-states-left)
-;;      ([?\s-L] . windmove-swap-states-right)
-;;      ([?\s-J] . windmove-swap-states-down)
-;;      ([?\s-K] . windmove-swap-states-up)
-;;      ;; misc
-;;      ([?\s-e] . (lambda () (interactive) (eshell 'N)))
-;;      ([?\s-o] . guix-packages-by-name)
-;;      ([?\s-p] . app-launcher-run-app)
-;;      ([?\s-f] . find-file)
-;;      ([?\s-d] . diary)
-;;      ([?\s-a] . org-agenda)
-;;      ([?\s-y] . org-store-link)
-;;      ([?\s-t] . org-insert-link)
-;;      ([?\s-/] . comment-line)
-;;      ([?\s-n] . (lambda () (interactive) (dired "~/alchemy/insanity/")))
-;;      ,@(mapcar (lambda (i)
-;;                  `(,(kbd (format "s-%d" i)) .
-;;                    (lambda ()
-;;                      (interactive)
-;;                      (exwm-workspace-switch-create ,i))))
-;;                (number-sequence 0 9))
-;;      )
-;;   )
-;;   :bind (
-;;          ;; essential desktop bindings
-;;          ("<XF86AudioRaiseVolume>" . (lambda () (interactive)
-;;                                            (start-process "" nil "pactl" "set-sink-volume" "@DEFAULT_SINK@" "+10%")))
-;;          ("<XF86AudioLowerVolume>" . (lambda () (interactive)
-;;                                            (start-process "" nil "pactl" "set-sink-volume" "@DEFAULT_SINK@" "-5%")))
-;;          ("<XF86MonBrightnessUp>" . (lambda () (interactive)
-;;                                           (start-process "" nil "brightnessctl" "set" "+10%")))
-;;          ("<XF86MonBrightnessDown>" . (lambda () (interactive)
-;;                                             (start-process "" nil "brightnessctl" "set" "3%-")))
-;;          ("<pause>" . emms-pause)
-;;          ("<f11>" . emms-previous)
-;;          ("<f12>" . emms-next)
-;;          )
-;;   :init
-;;   (exwm-wm-mode))
-#+end_src
 * packages
 ** prog
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
@@ -363,15 +210,6 @@ efficient functions call instead of lambdas
   (smtpmail-default-smtp-server "smtp.gmail.com")
   (smtpmail-smtp-service 587))
 #+end_src
-** social
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package erc
-  :custom
-  (erc-prompt (lambda () (concat "[" (buffer-name) "]")))
-  (erc-fill-function 'erc-fill-static)
-  (erc-nick "gnu-sigma")
-  (erc-server "irc.libera.chat"))
- #+end_src
 ** newsticker
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package newsticker
@@ -517,13 +355,6 @@ minibuffer - flex is like fuzzy finding
   (add-hook 'completion-at-point-functions #'cape-history))
 (use-package marginalia
   :hook minibuffer-mode)
-#+end_src
-** envrc
-guix reasons
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-;(use-package envrc
-;  :init
-;  (envrc-global-mode))
 #+end_src
 ** gptel
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
