@@ -1,55 +1,65 @@
-(use-modules (gnu))
-(use-service-modules admin desktop xorg networking docker)
+(use-modules (gnu)
+						 (nongnu packages linux)
+						 (nongnu system linux-initrd))
+(use-service-modules desktop admin docker xorg)
+
+(define %my-desktop-services
+	(modify-services %desktop-services
+									 (delete gdm-service-type)))
 
 ;; main config
 (operating-system
-  ;; personal
-  (host-name "sunless")
-  (timezone "Africa/Nairobi")
-  (locale "en_US.utf8")
-  (keyboard-layout (keyboard-layout "us"))
+	;; wifi
+	(kernel linux)
+	(initrd microcode-initrd)
+	(firmware (cons* iwlwifi-firmware
+									 %base-firmware))
 
-  ;; grub
-  (bootloader (bootloader-configuration
-                (bootloader grub-efi-bootloader)
-                (targets '("/boot/efi"))
-                (timeout "0")))
-  ;; file system
-  (file-systems
-   (append
-    (list
-     (file-system
-        (device "/dev/sda1")
-        (mount-point "/boot/efi")
-        (type "vfat"))
-     (file-system
-        (device "/dev/sda2")
-        (mount-point "/")
-        (type "ext4"))
-     (file-system
-        (device "/dev/sda3")
-        (mount-point "/home")
-        (type "ext4"))) %base-file-systems))
-  ;; users
-  (users (cons (user-account
-                 (name "sunless")
-                 (group "users")
-                 (supplementary-groups '("wheel" "audio" "video" "netdev"
-                                         "input" "docker"))) %base-user-accounts))
+	;; personal
+	(host-name "sunless")
+	(timezone "Africa/Nairobi")
+	(locale "en_US.utf8")
+	(keyboard-layout (keyboard-layout "us"))
 
-  ;; packages.
-  (packages %base-packages)
+	;; grub
+	(bootloader (bootloader-configuration
+								(bootloader grub-efi-bootloader)
+								(targets '("/boot/efi"))
+								(timeout "0")))
 
-  ;; services
-  (services
-   (append (list (service sane-service-type)
-                 (service elogind-service-type)
-                 (service unattended-upgrade-service-type)
-                 (service containerd-service-type)
-                 (service docker-service-type)
-                 (service xorg-server-service-type)
-                 (service dhcpcd-service-type))
-           %base-services))
+	;; file system
+	(file-systems
+	 (append
+		(list
+		 (file-system
+				(device "/dev/sda1")
+				(mount-point "/boot/efi")
+				(type "vfat"))
+		 (file-system
+				(device "/dev/sda2")
+				(mount-point "/")
+				(type "ext4"))
+		 (file-system
+				(device "/dev/sda3")
+				(mount-point "/home")
+				(type "ext4"))) %base-file-systems))
 
-  ;; Allow resolution of '.local' host names with mDNS.
-  (name-service-switch %mdns-host-lookup-nss))
+	;; users
+	(users (cons (user-account
+								 (name "sunless")
+								 (group "users")
+								 (supplementary-groups '("wheel" "audio" "video" "netdev"
+																				 "input" "docker"))) %base-user-accounts))
+
+	;; packages
+	(packages %base-packages)
+
+	;; base services
+	(services
+	 (append (list
+						(service containerd-service-type)
+						(service docker-service-type))
+					 %my-desktop-services))
+
+	;; Allow resolution of '.local' host names with mDNS.
+	(name-service-switch %mdns-host-lookup-nss))

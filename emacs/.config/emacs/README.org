@@ -1,5 +1,4 @@
-* essentials
-fonts [[https://github.com/D4lj337/Emacs-performance][emacs-perfomance]]
+** essentials
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package emacs
   :custom
@@ -8,75 +7,81 @@ fonts [[https://github.com/D4lj337/Emacs-performance][emacs-perfomance]]
   (menu-bar-mode nil)
   (scroll-bar-mode nil)
   (blink-cursor-mode nil)
-  (confirm-kill-processes nil)
   (make-backup-files nil)
+  (auto-save-default nil)
   (use-dialog-box nil)
-  (indent-tabs-mode nil)
   (initial-startup-screen nil)
   (initial-scratch-message nil)
-  (mode-line-format nil)
   (ring-bell-function 'ignore)
   (fringe-mode 0)
   (tab-width 2)
   (standard-indent 2)
-  ;; (global-visual-line-mode t)
-  ;; (indicate-buffer-boundaries nil)
-  ;; (display-time-default-load-average nil)
-  ;; (indicate-empty-lines nil)
-  ;; (overflow-newline-into-fringe nil)
+  (global-visual-line-mode t)
   (initial-major-mode 'fundamental-mode)
   (electric-indent-inhibit t)
   (inhibit-startup-message t)
   (scroll-conservatively 101)
   (use-short-answers t)
-  (backward-delete-char-untabify-method 'hungry)
   (tab-always-indent 'complete)
   (sentence-end-double-space nil)
-  (kill-do-not-save-duplicates t)
-  (comment-multi-line t)
   (ispell-dictionary "english")
-  ;; perfomance and optimizations
-  (use-package-vc-prefer-newest t)
   (gc-cons-threshold (* 128 1024 1024))
-  (read-process-output-max (* 1024 1024))
-  (process-adaptive-read-buffering nil)
-  (package-quickstart t)
-  (package-quickstart-file
-   (expand-file-name "quickstart.el" user-emacs-directory))
+	(kill-buffer-query-functions nil)
+  ;; modeline
+  (display-time-mode t)
+  (display-time-format "%H:%M %a %d %b")
+  (display-time-default-load-average nil)
+  (display-time-interval 1)
+  (mode-line-format
+   '(
+     (:eval
+      (when (mode-line-window-selected-p)
+	"%b"
+	))
+     ;; right side
+     mode-line-format-right-align
+     (:eval
+      (when (mode-line-window-selected-p)
+	display-time-string))))
   :config
+  ;; theme and fonts
   (load-theme 'modus-vivendi-tritanopia)
-  ;; fonts
-  (custom-set-faces
-   ;; Default font for all text
-   '(default ((t (:family "Hack" :height 90))))
-   '(fixed-pitch ((t (:family "Hack" :height 90))))
-   ;; Current line number
-   '(line-number-current-line ((t (:foreground "yellow" :inherit line-number))))
-   '(mode-line ((t (:family "Hack" :weight Bold))))
-   ;; Comments italic
-   '(font-lock-function-name-face ((t (:family "Hack":slant italic))))
-   '(font-lock-variable-name-face ((t (:family "Hack":weight bold)))))
-
+	(add-to-list 'default-frame-alist '(alpha-background . 90))
+  (add-to-list 'default-frame-alist
+	       '(font . "DejaVu Sans Mono-10"))
   ;; speed
   (defun start/display-startup-time ()
     (message "Emacs loaded in %s with %d garbage collections."
-             (format "%.2f seconds"
-                     (float-time
-                      (time-subtract after-init-time before-init-time)))
-             gcs-done))
+	     (format "%.2f seconds"
+		     (float-time
+		      (time-subtract after-init-time before-init-time)))
+	     gcs-done))
+  ;; replace the open read only
+  :bind (
+	 ("C-x C-r" . (lambda () (interactive)
+		       (org-babel-tangle-file "~/alchemy/dotfiles/emacs/.config/emacs/README.org")
+		       (load-file user-init-file)))
+	 ("s-x" . (lambda () (interactive)
+		    (find-file "~/alchemy/dotfiles/guix/.config/guix/home.scm")))
+	 ("s-c" . (lambda () (interactive)
+		    (find-file "~/alchemy/dotfiles/emacs/.config/emacs/README.org")))
+	 ("C-x C-q" . app-launcher-run-app)
+	 )
   :hook
   (emacs-startup-hook . start/display-startup-time)
-  (before-save-hook . whitespace-cleanup))
+  (before-save-hook . whitespace-cleanup)
+	)
 #+end_src
 * dired
+why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:use-package#Hooks][use-package#Hooks]])
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package dired
-  :defer t
   :hook
-  (dired-mode . hl-line-mode)
   (dired-mode . dired-hide-details-mode)
+  (dired-mode . hl-line-mode)
   :custom
   (dired-listing-switches "-Alh --group-directories-first")
+  (dired-hide-details-hide-symlink-targets nil)
   (dired-auto-revert-buffer t)
   (dired-free-space nil)
   (dired-kill-when-opening-new-dired-buffer t)
@@ -88,57 +93,221 @@ fonts [[https://github.com/D4lj337/Emacs-performance][emacs-perfomance]]
 add property headers for mkdirp and tangle
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package org
-  :bind
-  (:map org-mode-map
-        ("TAB" . org-cycle))
   :custom
   (org-return-follows-link t)
-  (org-ellipsis " ▼")
-  (org-log-done 'time)
   (org-startup-folded 'content)
-  (org-agenda-files '("~/alchemy/insanity/"))
   (org-src-fontify-natively t)
   (org-src-preserve-indentation t)
-  (org-todo-keywords
-        '((sequence "TODO" "TINKER" "ERROR" "TOMORROW" "|" "HORIZON"))))
+  (org-ellipsis " ")
+  (org-agenda-files '("~/alchemy/insanity/")))
 (use-package org-agenda
   :custom
   (org-agenda-include-diary t))
+(use-package calendar
+  :hook
+  (calendar-mode . diary-mark-entries)
+  :custom
+  (diary-number-of-entries 7)
+  (org-agenda-include-diary t))
 (use-package org-modern
-  :vc (:url "https://github.com/minad/org-modern.git")
   :custom
-  (org-modern-star nil) ;; icon not being rendered, using superstar for now
-  :hook
-  (org-mode . org-modern-mode))
-(use-package org-superstar
-  :vc (:url "https://github.com/integral-dw/org-superstar-mode.git")
-  :custom
-  (org-superstar-remove-leading-stars t)
-  :hook
-  (org-mode . org-superstar-mode))
+	(org-modern-star '("◉" "○" "◈" "◇" "*"))
+  (org-modern-checkbox nil)
+  :init
+  (global-org-modern-mode))
 #+end_src
 * visuals
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+(use-package modus-themes
+  :config
+  (modus-themes-with-colors
+    (set-face-attribute 'mode-line nil
+			:foreground fg-main
+			:background bg-main
+			:box nil)
+    (set-face-attribute 'mode-line-inactive nil
+			:foreground fg-main
+			:background bg-main
+			:box nil)))
+(use-package guix-prettify
+  :hook (dired-mode eshell-mode))
 (use-package pulsar
-  :vc (:url "https://github.com/protesilaos/pulsar.git")
   :custom
   (pulsar-face 'pulsar-red)
   (pulsar-highlight-face 'pulsar-red)
   (pulsar-global-mode t))
 (use-package rainbow-mode
-  :vc (:url "https://github.com/emacsmirror/rainbow-mode.git")
   :init
   (rainbow-mode))
 (use-package emojify
-  :vc (:url "https://github.com/iqbalansari/emacs-emojify.git")
-  :hook (after-init . global-emojify-mode))
+  :init
+  (global-emojify-mode))
 #+end_src
-* essential packages
+** evil
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+;; (use-package evil
+;;   :bind
+;;   (:map evil-normal-state-map
+;;         ("g l" . evil-end-of-line)
+;;         ("g h" . evil-beginning-of-visual-line)
+;;    :map evil-motion-state-map
+;;         ("RET" . nil)
+;;         ("SPC" . nil)
+;;         ("TAB" . nil))
+;;   :custom
+;;   (evil-want-integration t)
+;;   (evil-respect-visual-line-mode t)
+;;   (evil-want-keybinding nil)
+;;   (evil-undo-system 'undo-redo)
+;;   (evil-shift-width 2)
+;;   :init
+;;   (evil-mode))
+;; (use-package evil-collection
+;;   :after evil
+;;   :config
+;;   ;; dired
+;;   (evil-collection-define-key 'normal 'dired-mode-map
+;;     "h" 'dired-up-directory
+;;     "l" 'dired-find-file
+;;     "L" 'dired-do-open)
+;;   ;; info
+;;   (evil-collection-define-key 'normal 'Info-mode-map
+;;     "h" 'Info-up
+;;     "l" 'Info-follow-nearest-node)
+;;   ;; emms
+;;   (evil-collection-define-key 'normal 'emms-playlist-mode-map
+;;     "h" 'emms-shuffle
+;;     "l" 'emms-playlist-mode-play-smart)
+;;   :init
+;;   (evil-collection-init))
+;; (use-package evil-leader
+;;   :after evil
+;;   :custom
+;;   (evil-leader/leader "<SPC>")
+;;   :config
+;;   (evil-leader/set-key
+;;     "l" 'windmove-right
+;;     "h" 'windmove-left
+;;     "k" 'windmove-up
+;;     "j" 'windmove-down
+;;     "H" 'windmove-swap-states-left
+;;     "L" 'windmove-swap-states-right
+;;     "J" 'windmove-swap-states-down
+;;     "K" 'windmove-swap-states-up
+;;     "q" '(lambda () (interactive) (kill-buffer (current-buffer)))
+;;     "s" '(lambda () (interactive) (split-window-below) (window-swap-states))
+;;     "v" '(lambda () (interactive) (split-window-right) (window-swap-states))
+;;     "z" '(lambda () (interactive) (dired "~/alchemy/insanity/"))
+;;     "c" '(lambda () (interactive)
+;;            (find-file "~/alchemy/dotfiles/emacs/.config/emacs/README.org"))
+;;     "r" '(lambda () (interactive)
+;;            (org-babel-tangle-file "~/alchemy/dotfiles/emacs/.config/emacs/README.org")
+;;            (load-file user-init-file))
+;;     "x" '(lambda () (interactive)
+;;            (find-file "~/alchemy/dotfiles/guix/.config/guix/home.scm"))
+;;     "e" '(lambda () (interactive) (eshell 'N))
+;;     "b" 'switch-to-buffer
+;;     "i" 'delete-window
+;;     "w" 'save-some-buffers
+;;     "f" 'find-file
+;;     "a" 'org-agenda
+;;     "n" 'newsticker-show-news
+;;     "y" 'org-store-link
+;;     "t" 'org-insert-link
+;;     "/" 'comment-line
+;;     "o" 'guix-packages-by-name
+;;     "p" 'app-launcher-run-app
+;;     "d" 'diary)
+;;   :init
+;;   (global-evil-leader-mode))
+#+end_src
+** exwm
+efficient functions call instead of lambdas
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+;; (use-package exwm
+;;   :hook
+;;   (exwm-update-class-hook . (lambda ()
+;;                               (exwm-workspace-rename-buffer exwm-class-name)))
+;;   :custom
+;;   (browse-url-browser-function 'browse-url-generic)
+;;   (browse-url-generic-program "icecat")
+;;   (exwm-workspace-number 9)
+;;   (exwm-input-global-keys
+;;    `(
+;;      ;; buffer management
+;;      ([?\s-b] . switch-to-buffer)
+;;      ([?\s-i] . delete-window)
+;;      ([?\s-w] . save-some-buffers)
+;;      ([?\s-q] . (lambda () (interactive) (kill-buffer (current-buffer))))
+;;      ([?\s-s] . (lambda () (interactive) (split-window-below) (window-swap-states)))
+;;      ([?\s-v] . (lambda () (interactive) (split-window-right) (window-swap-states)))
+;;      ([?\s-c] . (lambda ()
+;;                   (interactive)
+;;                   (find-file "~/alchemy/dotfiles/emacs/.config/emacs/README.org")))
+;;      ([?\s-r] . (lambda ()
+;;                   (interactive)
+;;                   (org-babel-tangle-file "~/alchemy/dotfiles/emacs/.config/emacs/README.org")
+;;                   (load-file user-init-file)))
+;;      ([?\s-x] . (lambda ()
+;;                   (interactive)
+;;                   (find-file "~/alchemy/dotfiles/guix/.config/guix/home.scm")))
+;;      ;; move windows
+;;      ([?\s-l] . windmove-right)
+;;      ([?\s-h] . windmove-left)
+;;      ([?\s-k] . windmove-up)
+;;      ([?\s-j] . windmove-down)
+;;      ([?\s-H] . windmove-swap-states-left)
+;;      ([?\s-L] . windmove-swap-states-right)
+;;      ([?\s-J] . windmove-swap-states-down)
+;;      ([?\s-K] . windmove-swap-states-up)
+;;      ;; misc
+;;      ([?\s-e] . (lambda () (interactive) (eshell 'N)))
+;;      ([?\s-o] . guix-packages-by-name)
+;;      ([?\s-p] . app-launcher-run-app)
+;;      ([?\s-f] . find-file)
+;;      ([?\s-d] . diary)
+;;      ([?\s-a] . org-agenda)
+;;      ([?\s-y] . org-store-link)
+;;      ([?\s-t] . org-insert-link)
+;;      ([?\s-/] . comment-line)
+;;      ([?\s-n] . (lambda () (interactive) (dired "~/alchemy/insanity/")))
+;;      ,@(mapcar (lambda (i)
+;;                  `(,(kbd (format "s-%d" i)) .
+;;                    (lambda ()
+;;                      (interactive)
+;;                      (exwm-workspace-switch-create ,i))))
+;;                (number-sequence 0 9))
+;;      )
+;;   )
+;;   :bind (
+;;          ;; essential desktop bindings
+;;          ("<XF86AudioRaiseVolume>" . (lambda () (interactive)
+;;                                            (start-process "" nil "pactl" "set-sink-volume" "@DEFAULT_SINK@" "+10%")))
+;;          ("<XF86AudioLowerVolume>" . (lambda () (interactive)
+;;                                            (start-process "" nil "pactl" "set-sink-volume" "@DEFAULT_SINK@" "-5%")))
+;;          ("<XF86MonBrightnessUp>" . (lambda () (interactive)
+;;                                           (start-process "" nil "brightnessctl" "set" "+10%")))
+;;          ("<XF86MonBrightnessDown>" . (lambda () (interactive)
+;;                                             (start-process "" nil "brightnessctl" "set" "3%-")))
+;;          ("<pause>" . emms-pause)
+;;          ("<f11>" . emms-previous)
+;;          ("<f12>" . emms-next)
+;;          )
+;;   :init
+;;   (exwm-wm-mode))
+#+end_src
+* packages
 ** prog
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package prog-mode
   :custom
   (global-prettify-symbols-mode t))
+#+end_src
+** wind move
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+(use-package windmove
+  :config
+  (windmove-default-keybindings 'ctrl))
 #+end_src
 ** electric pair
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
@@ -168,19 +337,19 @@ add property headers for mkdirp and tangle
   (gnus-group-mode-hook . gnus-topic-mode)
   :custom
   ;; personal info
-  (user-full-name "Sunless Kelv")
+  (user-full-name "Sunless")
   (user-mail-address "sunlesskelv@gmail.com")
   ;; No primary server:
   (gnus-select-method '(nnnil ""))
   ;; main news
   (gnus-secondary-select-methods '(
-                                   (nnimap "gmail"
-                                           (nnimap-address "imap.gmail.com")
-                                           (nnimap-server-port 993)
-                                           (nnimap-stream ssl))
-                                   (nntp "gwene" (nntp-address "news.gwene.org"))
-                                   )
-                                 )
+				   (nnimap "gmail"
+					   (nnimap-address "imap.gmail.com")
+					   (nnimap-server-port 993)
+					   (nnimap-stream ssl))
+				   (nntp "gwene" (nntp-address "news.gwene.org"))
+				   )
+				 )
   ;; mail locations
   (gnus-directory "~/.config/emacs/news")
   (message-directory "~/.config/emacs/mail")
@@ -194,47 +363,56 @@ add property headers for mkdirp and tangle
   (smtpmail-default-smtp-server "smtp.gmail.com")
   (smtpmail-smtp-service 587))
 #+end_src
+** social
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+(use-package erc
+  :custom
+  (erc-prompt (lambda () (concat "[" (buffer-name) "]")))
+  (erc-fill-function 'erc-fill-static)
+  (erc-nick "gnu-sigma")
+  (erc-server "irc.libera.chat"))
+ #+end_src
 ** newsticker
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package newsticker
   :custom
   (newsticker-url-list '(
-                         ;; emacs
-                         ("Planet Emacslife" "https://planet.emacslife.com/atom.xml")
-                         ("Mastering Emacs" "http://www.masteringemacs.org/feed/")
-                         ("Oremacs" "https://oremacs.com/atom.xml")
-                         ("EmacsCast" "https://pinecast.com/feed/emacscast")
-                         ("Emacs TIL" "https://emacstil.com/feed.xml")
-                         ("Xenodium" "https://xenodium.com/rss")
-                         ("lemmy" "https://lemmy.ml/feeds/c/emacs.xml?sort=Active")
-                         ("null" "http://nullprogram.com/feed/")
-                         ("50ply" "http://www.50ply.com/atom.xml")
-                         ("nedroid" "http://nedroid.com/feed/")
-                         ("luke smith" "https://lukesmith.xyz/rss.xml")
-                         ;; reddit
-                         ("emacs" "https://www.reddit.com/r/emacs.rss")
-                         ("guix" "https://www.reddit.com/r/guix.rss")
-                         ("linux" "https://www.reddit.com/r/linux.rss")
-                         ("commandline" "https://www.reddit.com/r/commandline.rss")
-                         ("linuxadmin" "https://www.reddit.com/r/linuxadmin.rss")
-                         ("sysadmin" "https://www.reddit.com/r/sysadmin.rss")
-                         ("coding" "https://www.reddit.com/r/coding.rss")
-                         ("programming" "https://www.reddit.com/r/programming.rss")
-                         ("learn programming" "https://www.reddit.com/r/learnprogramming.rss")
-                         ("compsci" "https://www.reddit.com/r/compsci.rss")
-                         ("computer science" "https://www.reddit.com/r/ComputerScience.rss")
-                         ("rust" "https://www.reddit.com/r/rust.rss")
-                         ;;articles
-                         ("tecmint" "https://morss.it/https://www.tecmint.com/feed/")
-                         ("itsfoss" "https://morss.it/https://itsfoss.com/rss/")
-                         ("hackaday" "https://morss.it/feeds.feedburner.com/hackaday")
-                         ("guardian" "https://morss.it/https://www.theguardian.com/uk/technology/rss")
-                         ("soydev medium" "https://morss.it/https://medium.com/feed/tag/software-development")
-                         ("tech medium" "https://morss.it/https://medium.com/feed/tag/technology")
-                         ("hn newest" "https://morss.it/https://hnrss.org/newest")
-                         ("hn front" "https://morss.it/https://hnrss.org/frontpage")
-                         ("hn best" "https://morss.it/https://hnrss.org/best")
-                         )))
+			 ;; emacs
+			 ("Planet Emacslife" "https://planet.emacslife.com/atom.xml")
+			 ("Mastering Emacs" "http://www.masteringemacs.org/feed/")
+			 ("Oremacs" "https://oremacs.com/atom.xml")
+			 ("EmacsCast" "https://pinecast.com/feed/emacscast")
+			 ("Emacs TIL" "https://emacstil.com/feed.xml")
+			 ("Xenodium" "https://xenodium.com/rss")
+			 ("lemmy" "https://lemmy.ml/feeds/c/emacs.xml?sort=Active")
+			 ("null" "http://nullprogram.com/feed/")
+			 ("50ply" "http://www.50ply.com/atom.xml")
+			 ("nedroid" "http://nedroid.com/feed/")
+			 ("luke smith" "https://lukesmith.xyz/rss.xml")
+			 ;; reddit
+			 ("emacs" "https://www.reddit.com/r/emacs.rss")
+			 ("guix" "https://www.reddit.com/r/guix.rss")
+			 ("linux" "https://www.reddit.com/r/linux.rss")
+			 ("commandline" "https://www.reddit.com/r/commandline.rss")
+			 ("linuxadmin" "https://www.reddit.com/r/linuxadmin.rss")
+			 ("sysadmin" "https://www.reddit.com/r/sysadmin.rss")
+			 ("coding" "https://www.reddit.com/r/coding.rss")
+			 ("programming" "https://www.reddit.com/r/programming.rss")
+			 ("learn programming" "https://www.reddit.com/r/learnprogramming.rss")
+			 ("compsci" "https://www.reddit.com/r/compsci.rss")
+			 ("computer science" "https://www.reddit.com/r/ComputerScience.rss")
+			 ("rust" "https://www.reddit.com/r/rust.rss")
+			 ;;articles
+			 ("tecmint" "https://morss.it/https://www.tecmint.com/feed/")
+			 ("itsfoss" "https://morss.it/https://itsfoss.com/rss/")
+			 ("hackaday" "https://morss.it/feeds.feedburner.com/hackaday")
+			 ("guardian" "https://morss.it/https://www.theguardian.com/uk/technology/rss")
+			 ("soydev medium" "https://morss.it/https://medium.com/feed/tag/software-development")
+			 ("tech medium" "https://morss.it/https://medium.com/feed/tag/technology")
+			 ("hn newest" "https://morss.it/https://hnrss.org/newest")
+			 ("hn front" "https://morss.it/https://hnrss.org/frontpage")
+			 ("hn best" "https://morss.it/https://hnrss.org/best")
+			 )))
 #+end_src
 ** proced
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
@@ -244,12 +422,12 @@ add property headers for mkdirp and tangle
   (proced-enable-color-flag t))
 #+end_src
 ** spelling
-install ispell
+install ispell and dictionaary
 #+begin_src emacs-lisp
 (use-package flyspell
-  :hook
-  (text-mode . flyspell-mode)
-  (prog-mode . flyspell-prog-mode))
+  :hook ((org-mode . flyspell-mode)
+	 (text-mode . flyspell-mode)
+	 (prog-mode . flyspell-prog-mode)))
 #+end_src
 ** terminal
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
@@ -263,207 +441,54 @@ install ispell
 ** pdf
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package pdf-tools
-  :vc (:url "https://github.com/vedang/pdf-tools.git")
   :magic ("%PDF" . pdf-view-mode)
   :custom (pdf-view-display-size 'fit-height)
-  :hook (pdf-tools-enabled . pdf-view-themed-minor-mode)
+  :hook (pdf-view-mode . pdf-view-themed-minor-mode)
   :config
   (pdf-tools-install)
   (pdf-loader-install))
-(use-package org-pdf-tools
-  :vc (:url "https://github.com/fuxialexander/org-pdftools.git")
-  :ensure pdf-tools
-  :hook (org-mode . org-pdftools-setup-link))
 (use-package saveplace-pdf-view
-  :vc (:url "https://github.com/nicolaisingh/saveplace-pdf-view.git")
-  :ensure pdf-tools
-  :hook (pdf-view-mode-hook . save-place-mode))
+  :after (:any pdf-tools doc-view)
+  :demand t)
 #+end_src
-** music
+** emms
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package emms
-  :vc (:url "https://github.com/emacsmirror/emms.git")
+  :custom
+  (emms-repeat-playlist t)
+  (emms-source-file-default-directory "~/silence/night/")
+  (emms-history-file nil)
+  (emms-cache-file nil)
+  (emms-player-mpv-parameters '("--quiet" "--really-quiet" "--no-audio-display" "--speed=1"))
+  (emms-player-list '(emms-player-mpg321
+		      emms-player-ogg123
+		      emms-player-mpv))
   :config
   (require 'emms-player-simple)
   (require 'emms-source-file)
   (require 'emms-source-playlist)
-  :init
-  (emms-all)
-  :custom
-  (emms-repeat-playlist t)
-  (emms-source-file-default-directory "~/silence")
-  ;; (emms-cache-file nil)
-  (emms-history-file nil)
-  (emms-player-list '(emms-player-mpg321
-                      emms-player-ogg123
-                      emms-player-mpv)))
+  (emms-minimalistic))
 #+end_src
 ** helpful
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package helpful
-  :vc (:url "https://github.com/Wilfred/helpful.git")
   :bind (("C-h f" . helpful-callable)
-         ("C-h v" . helpful-variable)
-         ("C-h k" . helpful-key)
-         ("C-h x" . helpful-command)))
+	 ("C-h v" . helpful-variable)
+	 ("C-h k" . helpful-key)
+	 ("C-h x" . helpful-command)))
 #+end_src
 ** chess
 idk why stockfish isn't playing
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package chess
-  :vc (:url "https://github.com/jwiegley/emacs-chess.git")
   :custom
   (chess-default-engine #'chess-gnuchess)
   (chess-default-display #'chess-ics1))
-#+end_src
-** youtube
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package yeetube
-  :vc (:url "https://github.com/Boruch-Baum/emacs-yeetube.git")
-  :hook
-  (yeetube-mode . hl-line-mode)
-  :bind
-  ( :map global-map
-    ("<f11>" . yeetube-search)
-    :map yeetube-mode-map
-    ("M-l" . yeetube-play))
-  :custom
-  (yeetube-display-thumbnails-p nil)
-  (yeetube-filter "Date")
-  :config
-  (setf yeetube-mpv-video-quality 480))
-#+end_src
-* bindings
-** evil
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package evil
-  :vc (:url "https://github.com/emacs-evil/evil.git")
-  :bind
-  (:map evil-normal-state-map
-        ("g l" . evil-end-of-line)
-        ("g h" . evil-beginning-of-visual-line))
-  :custom
-  (evil-want-integration t)
-  (evil-respect-visual-line-mode t)
-  (evil-want-keybinding nil)
-  (evil-undo-system 'undo-redo)
-  (evil-shift-width 2)
-  :config
-  ;; fix RET with org links
-  (with-eval-after-load 'evil-maps
-    (define-key evil-motion-state-map (kbd "SPC") nil)
-    (define-key evil-motion-state-map (kbd "RET") nil)
-    (define-key evil-motion-state-map (kbd "TAB") nil))
-  :init
-  (evil-mode))
-(use-package evil-collection
-  :vc (:url "https://github.com/emacs-evil/evil-collection.git")
-  :after evil
-  :config
-  ;; dired
-  (evil-collection-define-key 'normal 'dired-mode-map
-    "h" 'dired-up-directory
-    "l" 'dired-find-file
-    "." 'dired-do-open)
-  ;; info
-  (evil-collection-define-key 'normal 'Info-mode-map
-    "h" 'Info-up
-    "l" 'Info-follow-nearest-node)
-  ;; emms
-  (evil-collection-define-key 'normal 'emms-playlist-mode-map
-    "h" 'emms-shuffle
-    "l" 'emms-playlist-mode-play-smart)
-  :init
-  (evil-collection-init))
-#+end_src
-** exwm
-efficient functions call instead of lambdas
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package exwm
-  :vc (:url "https://github.com/emacs-exwm/exwm.git")
-  :hook
-  (exwm-update-class-hook . (lambda ()
-                              (exwm-workspace-rename-buffer exwm-class-name)))
-  :custom
-  (browse-url-browser-function 'browse-url-generic)
-  (browse-url-generic-program "icecat")
-  (exwm-workspace-number 9)
-  (exwm-input-global-keys
-   `(
-     ;; buffer management
-     ([?\s-b] . switch-to-buffer)
-     ([?\s-i] . delete-window)
-     ([?\s-w] . save-some-buffers)
-     ([?\s-q] . (lambda () (interactive) (kill-buffer (current-buffer))))
-     ([?\s-s] . (lambda () (interactive) (split-window-below) (window-swap-states)))
-     ([?\s-v] . (lambda () (interactive) (split-window-right) (window-swap-states)))
-     ([?\s-\[] . (lambda ()
-                   (interactive)
-                   (mapc 'kill-buffer (delq (current-buffer) (buffer-list)))))
-     ([?\s-c] . (lambda ()
-                  (interactive)
-                  (find-file "~/alchemy/dotfiles/emacs/.config/emacs/README.org")))
-     ([?\s-r] . (lambda ()
-                  (interactive)
-                  (org-babel-tangle-file "~/alchemy/dotfiles/emacs/.config/emacs/README.org")
-                  (load-file user-init-file)))
-     ([?\s-x] . (lambda ()
-                  (interactive)
-                  (find-file "~/alchemy/dotfiles/guix/.config/guix/home.scm")))
-     ;; move windows
-     ([?\s-l] . windmove-right)
-     ([?\s-h] . windmove-left)
-     ([?\s-k] . windmove-up)
-     ([?\s-j] . windmove-down)
-     ([?\s-H] . windmove-swap-states-left)
-     ([?\s-L] . windmove-swap-states-right)
-     ([?\s-J] . windmove-swap-states-down)
-     ([?\s-K] . windmove-swap-states-up)
-     ;; misc
-     ;; ([?\s-e] . (lambda () (interactive) (eshell 'N)))
-     ([?\s-e] . eat)
-     ([?\s-o] . guix-packages-by-name)
-     ([?\s-p] . app-launcher-run-app)
-     ([?\s-f] . find-file)
-     ([?\s-d] . dired)
-     ([?\s-a] . org-agenda)
-     ([?\s-m] . newsticker-show-news)
-     ([?\s-y] . org-store-link)
-     ([?\s-t] . org-insert-link)
-     ([?\s-/] . comment-line)
-     ([?\s-n] . (lambda () (interactive) (dired "~/alchemy/insanity/")))
-     ,@(mapcar (lambda (i)
-                 `(,(kbd (format "s-%d" i)) .
-                   (lambda ()
-                     (interactive)
-                     (exwm-workspace-switch-create ,i))))
-               (number-sequence 0 9))
-
-     ))
-  :bind (
-         ;; essential desktop bindings
-         ("<XF86AudioRaiseVolume>" . (lambda () (interactive)
-                                       (start-process "" nil "pactl" "set-sink-volume" "@DEFAULT_SINK@" "+10%")))
-         ("<XF86AudioLowerVolume>" . (lambda () (interactive)
-                                       (start-process "" nil "pactl" "set-sink-volume" "@DEFAULT_SINK@" "-5%")))
-         ("<XF86MonBrightnessUp>" . (lambda () (interactive)
-                                      (start-process "" nil "brightnessctl" "set" "+10%")))
-         ("<XF86MonBrightnessDown>" . (lambda () (interactive)
-                                        (start-process "" nil "brightnessctl" "set" "3%-")))
-         )
-  :init
-  (exwm-wm-mode))
 #+end_src
 * dev
 ** auto-complete
 minibuffer - flex is like fuzzy finding
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package ido
-  :custom
-  (ido-everywhere t)
-  (ido-enable-flex-matching t)
-  (ido-use-filename-at-point 'guess)
-  (ido-ignore-extensions t))
 (use-package completion-preview
   :custom
   (global-completion-preview-mode t)
@@ -472,8 +497,10 @@ minibuffer - flex is like fuzzy finding
 (use-package minibuffer
   :custom
   (completion-styles '(flex))
-  (completion-show-inline-help nil)
-  (completion-show-help nil))
+  (completion-auto-help nil))
+(use-package ido
+  :custom
+  (ido-mode nil))
 (use-package icomplete
   :custom
   (fido-vertical-mode t))
@@ -483,36 +510,27 @@ minibuffer - flex is like fuzzy finding
   (history-delete-duplicates t)
   :hook minibuffer-mode)
 (use-package cape
-  :vc (:url "https://github.com/minad/cape.git")
   :init
   (add-hook 'completion-at-point-functions #'cape-dabbrev)
   (add-hook 'completion-at-point-functions #'cape-file)
   (add-hook 'completion-at-point-functions #'cape-dict)
   (add-hook 'completion-at-point-functions #'cape-history))
 (use-package marginalia
-  :vc (:url "https://github.com/minad/marginalia.git")
   :hook minibuffer-mode)
-#+end_src
-** ai
-get gemini api keys from [[https://aistudio.google.com/api-keys][Google AI Studio]]
-add to bash profile as $GEMINI_API_KEY
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package gptel
-  :vc (:url "https://github.com/karthink/gptel.git")
-  :defer t
-  :config
-  (setq
-   gptel-model 'gemini-2.5-flash
-   gptel-backend
-   (gptel-make-gemini "Gemini"
-     :key (getenv "GEMINI_API_KEY")
-     :stream t)))
 #+end_src
 ** envrc
 guix reasons
-#+begin_src emacs-lisp
-(use-package envrc
-  :vc (:url "https://github.com/purcell/envrc.git")
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+;(use-package envrc
+;  :init
+;  (envrc-global-mode))
+#+end_src
+** gptel
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+(use-package gptel
   :config
-  (envrc-global-mode))
+	(gptel-make-ollama "Ollama"
+		:host "localhost:11434"
+		:stream t
+		:models '(tinyllama:latest)))
 #+end_src
