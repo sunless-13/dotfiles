@@ -1,15 +1,18 @@
 # Logo key. Use Mod1 for Alt.
 set $mod Mod4
 
-# Home row direction keys, like vim
-set $left h
-set $down j
-set $up k
-set $right l
+# wasd from gaming
+set $left a
+set $down s
+set $up w
+set $right d
 
 		# Start a terminal
-		bindsym $mod+Return exec emacsclient --reuse-frame
-		bindsym $mod+p exec icecat
+		# bindsym $mod+Return exec emacsclient --reuse-frame
+		bindsym $mod+Return exec emacs
+		bindsym $mod+Shift+Return exec icecat
+		bindsym $mod+p exec chromium
+		bindsym $mod+o exec foot
 
 		# Kill focused window
 		bindsym $mod+q kill
@@ -77,7 +80,7 @@ set $right l
 		# $mod+b or $mod+v, for horizontal and vertical splits
 		# respectively. (b)
 		bindsym $mod+v splith
-		bindsym $mod+s splitv
+		bindsym $mod+b splitv
 
 		# Switch the current container between different layout styles
 		# bindsym $mod+s layout stacking
@@ -157,6 +160,8 @@ bindsym $mod+r mode "resize"
 for_window [class="^.*"] border pixel 0
 hide_edge_borders both
 
-exec emacs --daemon
+output "*" bg ~/stash/pics/ecl.jpg fill
+
+# exec emacs --daemon
 
 include @sysconfdir@/sway/config.d/*

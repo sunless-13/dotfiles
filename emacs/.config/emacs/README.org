@@ -1,33 +1,34 @@
-** essentials
+* essentials
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package emacs
   :custom
+	;; gui stufs
   (tool-bar-mode nil)
   (tooltip-mode nil)
   (menu-bar-mode nil)
   (scroll-bar-mode nil)
   (blink-cursor-mode nil)
-  (make-backup-files nil)
-  (auto-save-default nil)
+  (cursor-type 'hbar)
   (use-dialog-box nil)
   (initial-startup-screen nil)
   (initial-scratch-message nil)
+  (inhibit-startup-message t)
   (ring-bell-function 'ignore)
   (fringe-mode 0)
+  (use-short-answers t)
+	;; "normal" stufs
+  (make-backup-files nil)
+  (auto-save-default nil)
+  (create-lockfiles nil)
+	(visible-bell t)
   (tab-width 2)
-  (standard-indent 2)
+  (tab-always-indent 'complete)
   (global-visual-line-mode t)
   (initial-major-mode 'fundamental-mode)
-  (electric-indent-inhibit t)
-  (inhibit-startup-message t)
   (scroll-conservatively 101)
-  (use-short-answers t)
-  (tab-always-indent 'complete)
-  (sentence-end-double-space nil)
-  (ispell-dictionary "english")
-  (gc-cons-threshold (* 128 1024 1024))
-	(kill-buffer-query-functions nil)
+  (gc-cons-threshold (* 50 1024 1024))
   ;; modeline
+  (mode-line-position-line-format nil)
   (display-time-mode t)
   (display-time-format "%H:%M %a %d %b")
   (display-time-default-load-average nil)
@@ -35,211 +36,269 @@
   (mode-line-format
    '(
      (:eval
-      (when (mode-line-window-selected-p)
-	"%b"
-	))
+(when (mode-line-window-selected-p)
+  "%b"
+  ))
+     (:eval
+(when (mode-line-window-selected-p)
+  " "
+  ))
+     (:eval
+(when (mode-line-window-selected-p)
+  mode-line-position
+  ))
      ;; right side
      mode-line-format-right-align
      (:eval
-      (when (mode-line-window-selected-p)
-	display-time-string))))
-  :config
-  ;; theme and fonts
-  (load-theme 'modus-vivendi-tritanopia)
-	(add-to-list 'default-frame-alist '(alpha-background . 90))
-  (add-to-list 'default-frame-alist
-	       '(font . "DejaVu Sans Mono-10"))
-  ;; speed
-  (defun start/display-startup-time ()
-    (message "Emacs loaded in %s with %d garbage collections."
-	     (format "%.2f seconds"
-		     (float-time
-		      (time-subtract after-init-time before-init-time)))
-	     gcs-done))
-  ;; replace the open read only
-  :bind (
-	 ("C-x C-r" . (lambda () (interactive)
-		       (org-babel-tangle-file "~/alchemy/dotfiles/emacs/.config/emacs/README.org")
-		       (load-file user-init-file)))
-	 ("s-x" . (lambda () (interactive)
-		    (find-file "~/alchemy/dotfiles/guix/.config/guix/home.scm")))
-	 ("s-c" . (lambda () (interactive)
-		    (find-file "~/alchemy/dotfiles/emacs/.config/emacs/README.org")))
-	 ("C-x C-q" . app-launcher-run-app)
+(when (mode-line-window-selected-p)
+  mode-line-misc-info
+  ))
+     )
 	 )
+  :init
+
+  (load-theme 'modus-vivendi-tritanopia)
+  (set-face-attribute 'default nil
+		:height 90 :weight 'normal :family "DejaVu Sans Mono")
+  (set-fontset-font t 'unicode "Noto Emoji" nil 'append)
+  :bind ("C-x k" . kill-buffer-and-window)
   :hook
-  (emacs-startup-hook . start/display-startup-time)
-  (before-save-hook . whitespace-cleanup)
-	)
+  (emacs-startup-hook . (lambda ()
+													(message "Loaded in %.2fs"
+																	 (float-time (time-subtract after-init-time before-init-time))
+																	 gcs-done))))
+#+end_src
+* melpa
+idk why it's necessary for melpa packages like emojify
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+(use-package package
+  :config
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+  (package-initialize))
+(use-package use-package
+  :custom
+  (use-package-vc-prefer-newest t))
 #+end_src
 * dired
 why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:use-package#Hooks][use-package#Hooks]])
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package dired
+  :bind ("C-x C-d" . dired-jump)
   :hook
-  (dired-mode . dired-hide-details-mode)
-  (dired-mode . hl-line-mode)
+	((dired-mode . dired-hide-details-mode)
+   (dired-mode . hl-line-mode)
+   (dired-mode . auto-revert-mode))
   :custom
   (dired-listing-switches "-Alh --group-directories-first")
   (dired-hide-details-hide-symlink-targets nil)
-  (dired-auto-revert-buffer t)
   (dired-free-space nil)
   (dired-kill-when-opening-new-dired-buffer t)
-  (dired-recursive-copies  'always)
+  (dired-recursive-copies 'always)
   (dired-recursive-deletes 'always)
-  (shell-command-guess-open "mpv")) ;; used by dired-do-open (emacs-30)
+  (dired-dwim-target t)
+  (dired-guess-shell-alist-user
+   '(("\\.\\(mp[34]\\|m4a\\|ogg\\|flac\\|webm\\|mkv\\)" "mpv" "xdg-open" "open")
+     (".*" "xdg-open" "open")))
+  ;; (shell-command-guess-open "mpv"))
+)
 #+end_src
 * org
-add property headers for mkdirp and tangle
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package org
+  :magic ("%ORG" . org-mode)
   :custom
+  (org-edit-src-content-indentation 0)
+  (org-replace-disputed-keys t)
   (org-return-follows-link t)
   (org-startup-folded 'content)
-  (org-src-fontify-natively t)
-  (org-src-preserve-indentation t)
+  (org-hide-emphasis-markers t)
+  (org-pretty-entities t)
+	(org-src-fontify-natively t)
   (org-ellipsis " ")
-  (org-agenda-files '("~/alchemy/insanity/")))
+	(org-log-into-drawer t)
+  (org-agenda-files '("~/alchemy/light/church"
+		      "~/alchemy/light/coding"
+		      "~/alchemy/light/control"
+		      "~/alchemy/light/linux"
+		      "~/alchemy/light/mortal"
+		      "~/alchemy/light/radiance"))
+	;; org todo
+  (org-todo-keywords
+   '((sequence "TODO(t)"
+	       "PLANNED(p)"
+	       "IN-PROGRESS(i)"
+	       "VERIFYING(v)"
+	       "|"
+	       "DONE"
+	       "HORIZON")))
+  (org-log-done 'time)
+	;; org capture
+	(org-capture-templates
+   '(("c" "Cook" entry (file "~/alchemy/light/coding/20251214T154614--cook__cook.org")
+      "* %?")
+     ("k" "Kifa" entry (file "~/alchemy/light/control/20251214T154238--dark__fleet.org")
+      "* %?")
+     ("f" "Fleeting" plain (file "~/alchemy/light/mortal/20251214T152347--fleet__fleet.org")
+      "%?")
+     ("q" "Quest" entry (file "~/alchemy/light/mortal/20251214T152216--quest__quest.org")
+      "* TODO %?")
+		 ("j" "Journal" plain (file+datetree "~/alchemy/light/mortal/20251214T152112--journal__journal.org")
+			"%?")
+	 ))
+  :init
+  (defun my-reload-init-file ()
+    "Reload the main Emacs configuration file (init.el)."
+    (interactive)
+    (load-file user-init-file)
+    (message "Configuration reloaded from %s" user-init-file))
+  :bind
+	(("C-c a" . org-agenda)
+	 ("C-c l" . org-store-link)
+	 ("C-c c" . org-capture)
+	 ("C-x C-r" . my-reload-init-file)))
 (use-package org-agenda
-  :custom
-  (org-agenda-include-diary t))
+	:after org
+	:custom
+	(org-agenda-show-log t)
+	(org-agenda-include-diary t)
+	(org-agenda-diary-file "~/alchemy/light/mortal/20251213T223127--social__mortal.org")
+  (org-agenda-skip-deadline-if-done t))
 (use-package calendar
   :hook
   (calendar-mode . diary-mark-entries)
   :custom
   (diary-number-of-entries 7)
   (org-agenda-include-diary t))
-(use-package org-modern
-  :custom
-	(org-modern-star '("◉" "○" "◈" "◇" "*"))
-  (org-modern-checkbox nil)
-  :init
-  (global-org-modern-mode))
 #+end_src
-* visuals
+* packages
+** inbuilt
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+(use-package which-key
+  :hook
+  (after-init . which-key-mode))
+(use-package prog-mode
+  :custom
+  (global-prettify-symbols-mode t))
+(use-package elec-pair
+  :custom
+  (electric-pair-mode t))
+(use-package autorevert
+  :custom
+  (auto-revert-interval 1)
+  (global-auto-revert-mode t))
+(use-package proced
+  :custom
+  (proced-auto-update-flag t)
+  (proced-auto-update-interval 1)
+  (proced-descent t)
+  (proced-filter 'user)
+  (proced-enable-color-flag t))
+(use-package windmove
+  :config
+  (windmove-default-keybindings 'meta))
+(use-package recentf
+  :bind ("C-c r" . recentf)
+  :custom
+  (recentf-mode t)
+  (recentf-save-file "~/.config/emacs/recentf")
+  (recentf-max-saved-items 10))
+(use-package savehist
+  :custom
+  (history-length 50)
+  (history-delete-duplicates t)
+  :hook minibuffer-mode)
+(use-package saveplace
+  :custom
+  (save-place-mode t)
+  (save-place-limit 50))
+(use-package whitespace
+  :hook (before-save-hook . whitespace-cleanup))
+#+end_src
+** modus
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package modus-themes
   :config
   (modus-themes-with-colors
-    (set-face-attribute 'mode-line nil
-			:foreground fg-main
-			:background bg-main
-			:box nil)
-    (set-face-attribute 'mode-line-inactive nil
-			:foreground fg-main
-			:background bg-main
-			:box nil)))
-(use-package guix-prettify
-  :hook (dired-mode eshell-mode))
-(use-package pulsar
-  :custom
-  (pulsar-face 'pulsar-red)
-  (pulsar-highlight-face 'pulsar-red)
-  (pulsar-global-mode t))
-(use-package rainbow-mode
-  :init
-  (rainbow-mode))
-(use-package emojify
-  :init
-  (global-emojify-mode))
+		(set-face-attribute 'mode-line nil
+		  :foreground fg-main
+		  :background bg-main
+		  :box nil)
+		(set-face-attribute 'mode-line-inactive nil
+		  :foreground fg-main
+		  :background bg-main
+		  :box nil)))
 #+end_src
-* packages
-** prog
+** terminal
+=emacs-load-hook= only works when creating the first Eshell-buffer
+using =emacs-first-time-mode= fixes the problem when new eshell buffer is opened
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package prog-mode
+(use-package eshell
   :custom
-  (global-prettify-symbols-mode t))
-#+end_src
-** wind move
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package windmove
+  (eshell-banner-message "")
   :config
-  (windmove-default-keybindings 'ctrl))
-#+end_src
-** electric pair
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package elec-pair
-  :custom
-  (electric-pair-mode t))
-#+end_src
-** autorevert
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package autorevert
-  :custom
-  (global-auto-revert-mode t))
-#+end_src
-** which
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package which-key
-  :custom
-  (which-key-allow-evil-operators t)
-  (which-key-show-operator-state-maps t)
-  :init
-  (which-key-mode))
-#+end_src
-** gnus
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package gnus
+  (defun my-eshell-clear-scrollback ()
+    "Clear the Eshell buffer scrollback and restore the current input."
+    (interactive)
+    (let ((input (eshell-get-old-input)))
+			(eshell/clear-scrollback)
+			(eshell-emit-prompt)
+			(insert input)))
+  :bind
+	(("C-c e" . eshell)
+	 ("C-l" . my-eshell-clear-scrollback)))
+(use-package eat
+  :vc (:url "https://codeberg.org/akib/emacs-eat.git")
   :hook
-  (gnus-group-mode-hook . gnus-topic-mode)
-  :custom
-  ;; personal info
-  (user-full-name "Sunless")
-  (user-mail-address "sunlesskelv@gmail.com")
-  ;; No primary server:
-  (gnus-select-method '(nnnil ""))
-  ;; main news
-  (gnus-secondary-select-methods '(
-				   (nnimap "gmail"
-					   (nnimap-address "imap.gmail.com")
-					   (nnimap-server-port 993)
-					   (nnimap-stream ssl))
-				   (nntp "gwene" (nntp-address "news.gwene.org"))
-				   )
-				 )
-  ;; mail locations
-  (gnus-directory "~/.config/emacs/news")
-  (message-directory "~/.config/emacs/mail")
-  (nnfolder-directory "~/.config/emacs/mail/archive")
-  ;; random
-  (gnus-interactive-exit nil)
-  (gnus-asynchronous t)
-
-  ;; sending mail
-  (message-send-mail-function 'smtpmail-send-it)
-  (smtpmail-default-smtp-server "smtp.gmail.com")
-  (smtpmail-smtp-service 587))
+  (eshell-first-time-mode . eat-eshell-mode)
+  (eshell-first-time-mode . eat-eshell-visual-command-mode))
 #+end_src
 ** newsticker
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package newsticker
   :custom
+  (newsticker-frontend 'newsticker-plainview)
   (newsticker-url-list '(
 			 ;; emacs
 			 ("Planet Emacslife" "https://planet.emacslife.com/atom.xml")
 			 ("Mastering Emacs" "http://www.masteringemacs.org/feed/")
-			 ("Oremacs" "https://oremacs.com/atom.xml")
 			 ("EmacsCast" "https://pinecast.com/feed/emacscast")
 			 ("Emacs TIL" "https://emacstil.com/feed.xml")
 			 ("Xenodium" "https://xenodium.com/rss")
 			 ("lemmy" "https://lemmy.ml/feeds/c/emacs.xml?sort=Active")
 			 ("null" "http://nullprogram.com/feed/")
 			 ("50ply" "http://www.50ply.com/atom.xml")
-			 ("nedroid" "http://nedroid.com/feed/")
 			 ("luke smith" "https://lukesmith.xyz/rss.xml")
 			 ;; reddit
-			 ("emacs" "https://www.reddit.com/r/emacs.rss")
-			 ("guix" "https://www.reddit.com/r/guix.rss")
-			 ("linux" "https://www.reddit.com/r/linux.rss")
-			 ("commandline" "https://www.reddit.com/r/commandline.rss")
-			 ("linuxadmin" "https://www.reddit.com/r/linuxadmin.rss")
-			 ("sysadmin" "https://www.reddit.com/r/sysadmin.rss")
-			 ("coding" "https://www.reddit.com/r/coding.rss")
-			 ("programming" "https://www.reddit.com/r/programming.rss")
-			 ("learn programming" "https://www.reddit.com/r/learnprogramming.rss")
-			 ("compsci" "https://www.reddit.com/r/compsci.rss")
-			 ("computer science" "https://www.reddit.com/r/ComputerScience.rss")
-			 ("rust" "https://www.reddit.com/r/rust.rss")
+			 ("r/emacs" "https://www.reddit.com/r/emacs.rss")
+			 ("r/guix" "https://www.reddit.com/r/guix.rss")
+			 ("r/coding" "https://www.reddit.com/r/coding.rss")
+			 ("r/programming" "https://www.reddit.com/r/programming.rss")
+			 ("r/learnprogramming" "https://www.reddit.com/r/learnprogramming.rss")
+			 ("r/rust" "https://www.reddit.com/r/rust.rss")
+			 ("r/leptos" "https://www.reddit.com/r/leptos.rss")
+			 ("r/rust_gamedev" "https://www.reddit.com/r/rust_gamedev.rss")
+			 ("r/javascript" "https://www.reddit.com/r/javascript.rss")
+			 ("r/learnjavascript" "https://www.reddit.com/r/learnjavascript.rss")
+			 ("r/react" "https://www.reddit.com/r/react.rss")
+			 ("r/minimalist" "https://www.reddit.com/r/minimalist.rss")
+			 ("r/tech_minimalism" "https://www.reddit.com/r/tech_minimalism.rss")
+			 ;; yt rust
+			 ("yt-semicolon" "https://www.youtube.com/feeds/videos.xml?channel_id=UCmXIqVsp5QWiVDpyBP32O0Q")
+			 ("yt-rustuk" "https://www.youtube.com/feeds/videos.xml?channel_id=UCLksRXfBiEITZMUo2ssjSdA")
+			 ("yt-syed" "https://www.youtube.com/feeds/videos.xml?channel_id=UC9o-c3jnKS_rKJTlfFjVY9g")
+			 ("yt-jon" "https://www.youtube.com/feeds/videos.xml?channel_id=UC_iD0xppBwwsrM9DegC5cQQ")
+			 ;; yt web
+			 ("yt-codetv" "https://www.youtube.com/feeds/videos.xml?channel_id=UCnty0z0pNRDgnuoirYXnC5A")
+			 ("yt-moon" "https://www.youtube.com/feeds/videos.xml?channel_id=UCjREVt2ZJU8ql-NC9Gu-TJw")
+			 ;; yt emacs
+			 ("yt-joshua" "https://www.youtube.com/feeds/videos.xml?channel_id=UC1tV5SjRyejRGeHAaMGYSsQ")
+			 ("yt-emacsconf" "https://www.youtube.com/feeds/videos.xml?channel_id=UCwuyodzTl_KdEKNuJmeo99A")
+			 ("yt-skybert" "https://www.youtube.com/feeds/videos.xml?channel_id=UCrYei-iwgnIBZiuHCdmSQFA")
+			 ("yt-prot" "https://www.youtube.com/feeds/videos.xml?channel_id=UC0uTPqBCFIpZxlz_Lv1tk_g")
+			 ("yt-positron" "https://www.youtube.com/feeds/videos.xml?channel_id=UCqM0zDcFNdAHj7uQkprLszg")
+			 ("yt-element" "https://www.youtube.com/feeds/videos.xml?channel_id=UC--_DvRzKXtQyVdOWVLUJCA")
+			 ;; yt linux
+			 ("yt-tony" "https://www.youtube.com/feeds/videos.xml?channel_id=UC65_CVnMw6hvPET_DRDg3GA")
 			 ;;articles
 			 ("tecmint" "https://morss.it/https://www.tecmint.com/feed/")
 			 ("itsfoss" "https://morss.it/https://itsfoss.com/rss/")
@@ -252,46 +311,101 @@ add property headers for mkdirp and tangle
 			 ("hn best" "https://morss.it/https://hnrss.org/best")
 			 )))
 #+end_src
-** proced
+** auto-complete
+minibuffer - flex is like fuzzy finding
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package proced
+(use-package completion
   :custom
-  (proced-auto-update-flag t)
-  (proced-enable-color-flag t))
+  (completion-ignore-case t)
+  (completion-styles '(flex))
+  (completion-auto-help nil))
+(use-package completion-preview
+  :hook (after-init . global-completion-preview-mode))
+(use-package icomplete
+  :hook (after-init . fido-vertical-mode))
+(use-package cape
+	:vc (:url "https://github.com/minad/cape.git")
+  :init
+	(add-hook 'completion-at-point-functions #'cape-abbrev)
+  (add-hook 'completion-at-point-functions #'cape-dabbrev)
+  (add-hook 'completion-at-point-functions #'cape-elisp-block)
+	(add-hook 'completion-at-point-functions #'cape-elisp-symbol)
+  (add-hook 'completion-at-point-functions #'cape-emoji)
+  (add-hook 'completion-at-point-functions #'cape-file)
+  (add-hook 'completion-at-point-functions #'cape-history)
+	(add-hook 'completion-at-point-functions #'cape-keyword))
 #+end_src
-** spelling
-install ispell and dictionaary
-#+begin_src emacs-lisp
-(use-package flyspell
-  :hook ((org-mode . flyspell-mode)
-	 (text-mode . flyspell-mode)
-	 (prog-mode . flyspell-prog-mode)))
-#+end_src
-** terminal
+** avy
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package eshell
+(use-package avy
+  :vc (:url "https://github.com/abo-abo/avy.git")
+  :bind ("C-;" . avy-goto-char))
+#+end_src
+** denote
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+(use-package denote
+  :vc (:url "https://github.com/protesilaos/denote.git")
+	:custom
+  (denote-directory (expand-file-name "~/alchemy/light"))
+  (denote-known-keywords nil)
+  (denote-rename-buffer-mode t)
+	(denote-history-completion-in-prompts nil)
+  :bind
+  (("C-c n n" . denote)
+   ("C-c n l" . denote-link)
+	 ("C-c n o" . denote-open-or-create)
+	 ("C-c n f" . denote-create-note-in-subdirectory)
+   ("C-c n b" . denote-backlinks))
+	:hook (dired-mode . denote-dired-mode))
+#+end_src
+** apps
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+(use-package app-launcher
+  :vc (:url "https://github.com/SebastienWae/app-launcher.git")
+  :bind ("C-x C-q" . app-launcher-run-app))
+#+end_src
+** pulsar
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+(use-package pulsar
+  :vc (:url "https://github.com/protesilaos/pulsar.git")
   :custom
-  (eshell-banner-message "")
-  :hook
-  (eshell-first-time-mode-hook . #'eat-eshell-visual-command-mode)
-  (eshell-first-time-mode-hook . #'eat-eshell-mode))
+	(pulsar-face 'pulsar-red)
+  (pulsar-global-mode t))
+#+end_src
+** flash cards
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+(use-package org-drill
+  :vc (:url "https://gitlab.com/phillord/org-drill.git"))
+#+end_src
+** ledger
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+(use-package ledger-mode
+  :vc (:url "https://github.com/ledger/ledger-mode.git"))
 #+end_src
 ** pdf
+install with guix, vc isn't working
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package pdf-tools
+  :vc (:url "https://github.com/vedang/pdf-tools.git")
   :magic ("%PDF" . pdf-view-mode)
   :custom (pdf-view-display-size 'fit-height)
   :hook (pdf-view-mode . pdf-view-themed-minor-mode)
   :config
-  (pdf-tools-install)
-  (pdf-loader-install))
+  (pdf-tools-install :no-query))
 (use-package saveplace-pdf-view
-  :after (:any pdf-tools doc-view)
-  :demand t)
+  :vc (:url "https://github.com/nicolaisingh/saveplace-pdf-view.git")
+  :after pdf-tools)
 #+end_src
 ** emms
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package emms
+  :vc (:url "https://github.com/emacsmirror/emms.git")
+  :bind
+  (("C-c m m" . emms)
+	 ("C-c m p" . emms-pause)
+	 ("C-c m n" . emms-next)
+	 ("C-c m N" . emms-previous)
+	 ("C-c m f" . emms-add-directory))
   :custom
   (emms-repeat-playlist t)
   (emms-source-file-default-directory "~/silence/night/")
@@ -307,61 +421,115 @@ install ispell and dictionaary
   (require 'emms-source-playlist)
   (emms-minimalistic))
 #+end_src
-** helpful
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package helpful
-  :bind (("C-h f" . helpful-callable)
-	 ("C-h v" . helpful-variable)
-	 ("C-h k" . helpful-key)
-	 ("C-h x" . helpful-command)))
-#+end_src
-** chess
+** games
 idk why stockfish isn't playing
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package chess
+  :vc (:url "https://github.com/jwiegley/emacs-chess.git")
   :custom
   (chess-default-engine #'chess-gnuchess)
   (chess-default-display #'chess-ics1))
+(use-package typit
+  :vc (:url "https://github.com/mrkkrp/typit.git"))
+(use-package sudoku
+  :vc (:url "https://github.com/zevlg/sudoku.el.git")
+	:custom
+	(sudoku-level 'medium))
+#+end_src
+* social
+cannot load file "llama", so loading ement after llama fixed it for some reason
+erc, rcirc, gnus, whatsapp, reddit, twitter, mastodon
+** gnus
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+(use-package gnus
+  :hook
+  (gnus-group-mode-hook . gnus-topic-mode)
+  :custom
+  ;; personal info
+  (user-full-name "Sunless")
+  (user-mail-address "sunlesskelv@gmail.com")
+  (gnus-select-method '(nnnil ""))
+  ;; main news
+  (gnus-secondary-select-methods '((nnimap "gmail"
+																					 (nnimap-address "imap.gmail.com")
+																					 (nnimap-server-port "imaps")
+																					 (nnimap-stream ssl))
+																	 ;; (nntp "gwene" (nntp-address "news.gwene.org"))
+																	 )
+																 )
+  (gnus-directory "~/.config/emacs/news")
+  (message-directory "~/.config/emacs/mail")
+  (nnfolder-directory "~/.config/emacs/mail/archive")
+  ;; random
+  (gnus-interactive-exit nil)
+  (gnus-asynchronous t)
+  ;; sending mail
+  (message-send-mail-function 'smtpmail-send-it)
+  (smtpmail-default-smtp-server "smtp.gmail.com"))
+#+end_src
+** ement
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+(use-package ement
+	:vc (:url "https://github.com/alphapapa/ement.el.git")
+	:after llama)
 #+end_src
 * dev
-** auto-complete
-minibuffer - flex is like fuzzy finding
+** eglot
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package completion-preview
-  :custom
-  (global-completion-preview-mode t)
-  :config
-  (push 'org-self-insert-command completion-preview-commands))
-(use-package minibuffer
-  :custom
-  (completion-styles '(flex))
-  (completion-auto-help nil))
-(use-package ido
-  :custom
-  (ido-mode nil))
-(use-package icomplete
-  :custom
-  (fido-vertical-mode t))
-(use-package savehist
-  :custom
-  (history-length 50)
-  (history-delete-duplicates t)
-  :hook minibuffer-mode)
-(use-package cape
-  :init
-  (add-hook 'completion-at-point-functions #'cape-dabbrev)
-  (add-hook 'completion-at-point-functions #'cape-file)
-  (add-hook 'completion-at-point-functions #'cape-dict)
-  (add-hook 'completion-at-point-functions #'cape-history))
-(use-package marginalia
-  :hook minibuffer-mode)
+(use-package eglot
+  :hook
+  (sh-mode . eglot-ensure)
+  (bash-ts-mode . eglot-ensure)
+  (rust-mode . eglot-ensure)
+  (rust-ts-mode . eglot-ensure)
+  (js-jsx-mode . eglot-ensure))
 #+end_src
 ** gptel
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
 (use-package gptel
+  :vc (:url "https://github.com/karthink/gptel.git")
+  :custom
+  (gptel-default-mode #'org-mode)
+  (gptel-model 'tngtech/deepseek-r1t2-chimera:free)
+	:bind (("C-c g g" . gptel)
+				 ("C-c g m" . gptel-menu)
+				 ("C-c g s" . gptel-send))
   :config
-	(gptel-make-ollama "Ollama"
-		:host "localhost:11434"
-		:stream t
-		:models '(tinyllama:latest)))
+  ;; ollama
+  (setq gptel-backend
+  (gptel-make-ollama "Ollama"
+    :host "localhost:11434"
+    :stream t
+    :models '(tinyllama:latest)))
+	;; open router
+	(setq gptel-backend
+  (gptel-make-openai "OpenRouter"
+    :host "openrouter.ai"
+    :endpoint "/api/v1/chat/completions"
+    :stream t
+    :key (gptel-api-key-from-auth-source "api.openrouter.ai")
+    :models '(kwaipilot/kat-coder-pro:free
+							mistralai/devstral-2512:free
+							tngtech/deepseek-r1t2-chimera:free))))
+#+end_src
+** docker
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+(use-package docker
+  :vc (:url "https://github.com/Silex/docker.el.git")
+	:custom
+	(docker-container-columns '((:name "Names" :width 10 :template "{{ json .Names }}" :sort nil :format nil)
+															(:name "Status" :width 20 :template "{{ json .Status }}" :sort nil :format nil)
+															(:name "Ports" :width 10 :template "{{ json .Ports }}" :sort nil :format nil)
+															(:name "Command" :width 30 :template "{{ json .Command }}" :sort nil :format nil)
+															(:name "Image" :width 15 :template "{{ json .Image }}" :sort nil :format nil))))
+(use-package dockerfile-mode
+  :vc (:url "https://github.com/spotify/dockerfile-mode.git"))
+(use-package yaml-mode
+  :vc (:url "https://github.com/yoshiki/yaml-mode.git")
+  :magic ("%YAML" . yaml-mode))
+#+end_src
+** rust
+#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+(use-package rust-mode
+  :vc (:url "https://github.com/rust-lang/rust-mode.git"))
 #+end_src

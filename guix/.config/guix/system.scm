@@ -54,12 +54,14 @@
 	;; packages
 	(packages %base-packages)
 
-	;; base services
+	;; services
 	(services
 	 (append (list
+						(service bluetooth-service-type)
 						(service containerd-service-type)
 						(service docker-service-type))
 					 %my-desktop-services))
+
 
 	;; Allow resolution of '.local' host names with mDNS.
 	(name-service-switch %mdns-host-lookup-nss))

@@ -15,7 +15,7 @@ input {
 		focus-follows-mouse max-scroll-amount="0%"
 }
 cursor {
-		xcursor-theme "Adwaita"
+		xcursor-theme "breeze_cursors"
 		xcursor-size 24
 		hide-when-typing
 		hide-after-inactive-ms 500
@@ -27,6 +27,7 @@ cursor {
 		position x=1280 y=0
 }
 layout {
+		background-color "#000000"
 		gaps 0
 		center-focused-column "never"
 		preset-column-widths {
@@ -56,9 +57,6 @@ layout {
 		struts {
 		}
 }
-spawn-at-startup "swayidle"
-spawn-sh-at-startup "emacs --daemon"
-spawn-sh-at-startup "swaybg -i ~/stash/pics/ecl.jpg"
 hotkey-overlay {
 		skip-at-startup
 }
@@ -67,29 +65,11 @@ screenshot-path "~/pics/%Y-%m-%d %H-%M-%S.png"
 animations {
 		off
 }
-window-rule {
-		match app-id=r#"^org\.wezfurlong\.wezterm$"#
-		default-column-width {}
-}
-window-rule {
-		match app-id=r#"firefox$"# title="^Picture-in-Picture$"
-		open-floating true
-}
-/-window-rule {
-		match app-id=r#"^org\.keepassxc\.KeePassXC$"#
-		match app-id=r#"^org\.gnome\.World\.Secrets$"#
-		block-out-from "screen-capture"
-}
-/-window-rule {
-		geometry-corner-radius 12
-		clip-to-geometry true
-}
-
+spawn-sh-at-startup "emacs --daemon"
 binds {
-		Mod+Shift+Slash { show-hotkey-overlay; }
+		Mod+Return { spawn-sh "emacsclient --create-frame"; }
 		Mod+Shift+Return { spawn "icecat"; }
 		Mod+P { spawn "chromium"; }
-		Super+Return { spawn-sh "emacsclient --create-frame"; }
 
 		XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+"; }
 		XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-"; }
@@ -144,4 +124,9 @@ gestures {
 		hot-corners {
 				off
 		}
+}
+environment {
+		ELECTRON_OZONE_PLATFORM_HINT "auto"
+		QT_QPA_PLATFORM "wayland"
+		DISPLAY null
 }

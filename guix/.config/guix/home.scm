@@ -13,8 +13,6 @@
 	 (specifications->packages
 		(list
 		 ;; essentials
-		 "nss-certs"
-		 "openssh"
 		 "dbus"
 		 "brightnessctl"
 		 "unzip"
@@ -26,11 +24,19 @@
 		 "which"
 		 "eza"
 		 "grep"
-		 "direnv"
+		 ;; "direnv"
 		 "bat"
 		 "stow"
 		 "fontconfig"
 		 "groff"
+		 "ghostscript"
+		 "imagemagick"
+		 "xpdf"
+		 "font-google-noto-sans-cjk"
+		 "font-google-noto-emoji"
+		 "font-dejavu"
+		 "font-microsoft-times-new-roman"
+		 "openssh"
 		 ;; noice apps
 		 "aria2"
 		 "yt-dlp"
@@ -39,93 +45,22 @@
 		 "ungoogled-chromium-wayland"
 		 "niri"
 		 "xwayland-satellite"
-		 "swayidle"
-		 "swaybg"
-		 ;; "xdg-desktop-portal-gtk"
+		 "xdg-desktop-portal-gtk"
 		 "mako"
-		 "gammastep"
 		 "wf-recorder"
-		 "gimp"
 		 "pipewire"
 		 "wireplumber"
+		 "ledger"
+		 ;; "vscodium"
+		 ;; "gimp"
 		 ;; emacs
-		 "ispell"
 		 "chess"
 		 "guile"
 		 "emacs-pgtk"
-		 "emacs-org-modern"
-		 "emacs-pulsar"
-		 "emacs-rainbow-mode"
-		 "emacs-emojify"
-		 "emacs-ement"
 		 "emacs-guix"
 		 "emacs-geiser"
 		 "emacs-geiser-guile"
-		 "emacs-app-launcher"
 		 "emacs-pdf-tools"
-		 "emacs-saveplace-pdf-view"
-		 "emacs-emms"
-		 "emacs-helpful"
-		 "emacs-chess"
-		 "emacs-cape"
-		 "emacs-marginalia"
-		 "emacs-magit"
-		 "emacs-docker"
-		 "emacs-gptel"
-		 ;; "emacs-envrc"
-
-		 ;; rust
-		 "coreutils"
-		 "gcc-toolchain"
-		 "libgccjit"
-		 ;; "at-spi2-core"
-		 "atkmm"
-		 ;; "cairo"
-		 "gdk-pixbuf"
-		 ;; "glib"
-		 "gtk"
-		 "harfbuzz"
-		 "librsvg"
-		 "libsoup"
-		 ;; "pango"
-		 "openssl"
-		 "webkitgtk"
-		 ;; macroquad
-		 "pkg-config"
-		 "libx11"
-		 "libxi"
-		 "libxcursor"
-		 "libxrandr"
-		 "mesa-opencl"
-		 "alsa-lib"
-		 ;; essentials
-		 "bash-minimal"
-		 "nss-certs"
-		 "grep"
-		 "curl"
-		 "git"
-		 "which"
-		 "tar"
-		 "gzip"
-		 "xz"
-		 ;; misc
-		 "vscodium"
-
-		 ;; react
-		 "bash-minimal"
-		 "coreutils"
-		 "sed"
-		 "tar"
-		 "gzip"
-		 "findutils"
-		 "gawk"
-		 "grep"
-		 "git"
-		 "nss-certs"
-		 "curl"
-		 "which"
-		 "gcc-toolchain"
-		 "vscodium"
 		 )))
 	;; add dotfiles
 	(services
@@ -151,8 +86,9 @@
 							("CURL_CA_BUNDLE" . "$SSL_CERT_FILE")
 							("QT_QPA_PLATFORM" . "wayland")
 							("QT_WAYLAND_DISABLE_WINDOWDECORATION" . "1")
-							("XCURSOR_PATH" . "$HOME/.local/share/icons/")
-							("XCURSOR_THEME" . "Adwaita")
+							("LANG" . "en_US.UTF-8")
+							("LC_ALL" . "en_US.UTF-8")
+							("TERM" . "xterm-256color")
 							))
 					(bashrc (list (local-file "/home/sunless/alchemy/dotfiles/shell/.bashrc" "bashrc")))
 					(bash-profile (list (local-file "/home/sunless/alchemy/dotfiles/shell/.bash-profile" "bash-profile")))
@@ -168,7 +104,7 @@
 							 "emacs"
 							 "mpv"
 							 "guix"
-							 ;; "sway"
+							 "niri"
 							 ))
 					)
 			)
