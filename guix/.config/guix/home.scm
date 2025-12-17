@@ -24,7 +24,6 @@
 		 "which"
 		 "eza"
 		 "grep"
-		 ;; "direnv"
 		 "bat"
 		 "stow"
 		 "fontconfig"
@@ -51,8 +50,6 @@
 		 "pipewire"
 		 "wireplumber"
 		 "ledger"
-		 ;; "vscodium"
-		 ;; "gimp"
 		 ;; emacs
 		 "chess"
 		 "guile"

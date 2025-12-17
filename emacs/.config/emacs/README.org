@@ -27,6 +27,7 @@
   (initial-major-mode 'fundamental-mode)
   (scroll-conservatively 101)
   (gc-cons-threshold (* 50 1024 1024))
+	(text-mode-ispell-word-completion nil)
   ;; modeline
   (mode-line-position-line-format nil)
   (display-time-mode t)
@@ -56,12 +57,20 @@
      )
 	 )
   :init
-
   (load-theme 'modus-vivendi-tritanopia)
   (set-face-attribute 'default nil
 		:height 90 :weight 'normal :family "DejaVu Sans Mono")
   (set-fontset-font t 'unicode "Noto Emoji" nil 'append)
-  :bind ("C-x k" . kill-buffer-and-window)
+	:config
+	(defun kill-other-buffers ()
+    "Kill all other buffers."
+    (interactive)
+    (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
+  :bind
+	(("C-x k" . kill-current-buffer)
+	 ("C-c k" . kill-other-buffers)
+	 ("M-o" . other-window)
+	 ("C-x ;" . comment-line))
   :hook
   (emacs-startup-hook . (lambda ()
 													(message "Loaded in %.2fs"
@@ -86,8 +95,7 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
   :bind ("C-x C-d" . dired-jump)
   :hook
 	((dired-mode . dired-hide-details-mode)
-   (dired-mode . hl-line-mode)
-   (dired-mode . auto-revert-mode))
+   (dired-mode . hl-line-mode))
   :custom
   (dired-listing-switches "-Alh --group-directories-first")
   (dired-hide-details-hide-symlink-targets nil)
@@ -97,10 +105,8 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
   (dired-recursive-deletes 'always)
   (dired-dwim-target t)
   (dired-guess-shell-alist-user
-   '(("\\.\\(mp[34]\\|m4a\\|ogg\\|flac\\|webm\\|mkv\\)" "mpv" "xdg-open" "open")
-     (".*" "xdg-open" "open")))
-  ;; (shell-command-guess-open "mpv"))
-)
+   '(("\\.\\(mp[34]\\|m4a\\|ogg\\|flac\\|webm\\|mkv\\)" "mpv")
+     (".*" "xdg-open"))))
 #+end_src
 * org
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
@@ -116,12 +122,13 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 	(org-src-fontify-natively t)
   (org-ellipsis " ")
 	(org-log-into-drawer t)
-  (org-agenda-files '("~/alchemy/light/church"
-		      "~/alchemy/light/coding"
-		      "~/alchemy/light/control"
-		      "~/alchemy/light/linux"
-		      "~/alchemy/light/mortal"
-		      "~/alchemy/light/radiance"))
+  (org-agenda-files
+	 '("~/alchemy/light/church"
+		 "~/alchemy/light/coding"
+		 "~/alchemy/light/control"
+		 "~/alchemy/light/linux"
+		 "~/alchemy/light/mortal"
+		 "~/alchemy/light/social"))
 	;; org todo
   (org-todo-keywords
    '((sequence "TODO(t)"
@@ -134,17 +141,18 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
   (org-log-done 'time)
 	;; org capture
 	(org-capture-templates
-   '(("c" "Cook" entry (file "~/alchemy/light/coding/20251214T154614--cook__cook.org")
+   '(("c" "Cook" entry (file "~/alchemy/light/coding/cook.org")
       "* %?")
-     ("k" "Kifa" entry (file "~/alchemy/light/control/20251214T154238--dark__fleet.org")
+     ("k" "Kifa" entry (file "~/alchemy/light/control/fire.org")
       "* %?")
-     ("f" "Fleeting" plain (file "~/alchemy/light/mortal/20251214T152347--fleet__fleet.org")
+     ("f" "Fleeting" plain (file "~/alchemy/light/mortal/fleet.org")
       "%?")
-     ("q" "Quest" entry (file "~/alchemy/light/mortal/20251214T152216--quest__quest.org")
+     ("q" "Quest" entry (file "~/alchemy/light/mortal/quest.org")
       "* TODO %?")
-		 ("j" "Journal" plain (file+datetree "~/alchemy/light/mortal/20251214T152112--journal__journal.org")
+		 ("j" "Journal" plain (file+datetree "~/alchemy/light/mortal/journal.org")
 			"%?")
 	 ))
+	(org-bookmark-names-plist nil)
   :init
   (defun my-reload-init-file ()
     "Reload the main Emacs configuration file (init.el)."
@@ -161,14 +169,10 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 	:custom
 	(org-agenda-show-log t)
 	(org-agenda-include-diary t)
-	(org-agenda-diary-file "~/alchemy/light/mortal/20251213T223127--social__mortal.org")
+	(org-agenda-diary-file "~/alchemy/light/social")
   (org-agenda-skip-deadline-if-done t))
-(use-package calendar
-  :hook
-  (calendar-mode . diary-mark-entries)
-  :custom
-  (diary-number-of-entries 7)
-  (org-agenda-include-diary t))
+(use-package bookmark
+	:bind ("C-c j" . bookmark-jump))
 #+end_src
 * packages
 ** inbuilt
@@ -312,21 +316,28 @@ using =emacs-first-time-mode= fixes the problem when new eshell buffer is opened
 			 )))
 #+end_src
 ** auto-complete
-minibuffer - flex is like fuzzy finding
+enable completion preview in minibuffer
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package completion
+(use-package minibuffer
   :custom
-  (completion-ignore-case t)
-  (completion-styles '(flex))
-  (completion-auto-help nil))
+	(completion-auto-help nil) ;; disable *Completions*
+  (completion-styles '(flex)))
 (use-package completion-preview
   :hook (after-init . global-completion-preview-mode))
 (use-package icomplete
-  :hook (after-init . fido-vertical-mode))
+  :custom
+  (fido-vertical-mode t))
+(use-package corfu
+	:vc (:url "https://github.com/minad/corfu.git")
+  :hook
+  (prog-mode . corfu-mode)
+  :custom
+	(corfu-auto t))
 (use-package cape
 	:vc (:url "https://github.com/minad/cape.git")
   :init
 	(add-hook 'completion-at-point-functions #'cape-abbrev)
+	(add-hook 'completion-at-point-functions #'cape-dict)
   (add-hook 'completion-at-point-functions #'cape-dabbrev)
   (add-hook 'completion-at-point-functions #'cape-elisp-block)
 	(add-hook 'completion-at-point-functions #'cape-elisp-symbol)
@@ -340,23 +351,6 @@ minibuffer - flex is like fuzzy finding
 (use-package avy
   :vc (:url "https://github.com/abo-abo/avy.git")
   :bind ("C-;" . avy-goto-char))
-#+end_src
-** denote
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
-(use-package denote
-  :vc (:url "https://github.com/protesilaos/denote.git")
-	:custom
-  (denote-directory (expand-file-name "~/alchemy/light"))
-  (denote-known-keywords nil)
-  (denote-rename-buffer-mode t)
-	(denote-history-completion-in-prompts nil)
-  :bind
-  (("C-c n n" . denote)
-   ("C-c n l" . denote-link)
-	 ("C-c n o" . denote-open-or-create)
-	 ("C-c n f" . denote-create-note-in-subdirectory)
-   ("C-c n b" . denote-backlinks))
-	:hook (dired-mode . denote-dired-mode))
 #+end_src
 ** apps
 #+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
@@ -453,10 +447,7 @@ erc, rcirc, gnus, whatsapp, reddit, twitter, mastodon
   (gnus-secondary-select-methods '((nnimap "gmail"
 																					 (nnimap-address "imap.gmail.com")
 																					 (nnimap-server-port "imaps")
-																					 (nnimap-stream ssl))
-																	 ;; (nntp "gwene" (nntp-address "news.gwene.org"))
-																	 )
-																 )
+																					 (nnimap-stream ssl))))
   (gnus-directory "~/.config/emacs/news")
   (message-directory "~/.config/emacs/mail")
   (nnfolder-directory "~/.config/emacs/mail/archive")
