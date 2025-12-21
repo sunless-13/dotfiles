@@ -1,5 +1,7 @@
+#+TITLE: my config
+#+PROPERTY: header-args :tangle "~/.config/emacs/init.el"
 * essentials
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package emacs
   :custom
 	;; gui stufs
@@ -22,12 +24,10 @@
   (create-lockfiles nil)
 	(visible-bell t)
   (tab-width 2)
-  (tab-always-indent 'complete)
   (global-visual-line-mode t)
   (initial-major-mode 'fundamental-mode)
   (scroll-conservatively 101)
   (gc-cons-threshold (* 50 1024 1024))
-	(text-mode-ispell-word-completion nil)
   ;; modeline
   (mode-line-position-line-format nil)
   (display-time-mode t)
@@ -79,7 +79,7 @@
 #+end_src
 * melpa
 idk why it's necessary for melpa packages like emojify
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package package
   :config
   (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
@@ -90,9 +90,12 @@ idk why it's necessary for melpa packages like emojify
 #+end_src
 * dired
 why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:use-package#Hooks][use-package#Hooks]])
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package dired
-  :bind ("C-x C-d" . dired-jump)
+  :bind
+	(:map dired-mode-map
+   ("C-b" . dired-up-directory)
+	 ("C-f" . dired-find-file))
   :hook
 	((dired-mode . dired-hide-details-mode)
    (dired-mode . hl-line-mode))
@@ -100,7 +103,7 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
   (dired-listing-switches "-Alh --group-directories-first")
   (dired-hide-details-hide-symlink-targets nil)
   (dired-free-space nil)
-  (dired-kill-when-opening-new-dired-buffer t)
+  (direqd-kill-when-opening-new-dired-buffer t)
   (dired-recursive-copies 'always)
   (dired-recursive-deletes 'always)
   (dired-dwim-target t)
@@ -109,9 +112,10 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
      (".*" "xdg-open"))))
 #+end_src
 * org
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package org
   :magic ("%ORG" . org-mode)
+	:hook (org-mode . flyspell-mode)
   :custom
   (org-edit-src-content-indentation 0)
   (org-replace-disputed-keys t)
@@ -176,7 +180,7 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 #+end_src
 * packages
 ** inbuilt
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package which-key
   :hook
   (after-init . which-key-mode))
@@ -219,7 +223,7 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
   :hook (before-save-hook . whitespace-cleanup))
 #+end_src
 ** modus
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package modus-themes
   :config
   (modus-themes-with-colors
@@ -235,7 +239,7 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 ** terminal
 =emacs-load-hook= only works when creating the first Eshell-buffer
 using =emacs-first-time-mode= fixes the problem when new eshell buffer is opened
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package eshell
   :custom
   (eshell-banner-message "")
@@ -257,7 +261,7 @@ using =emacs-first-time-mode= fixes the problem when new eshell buffer is opened
   (eshell-first-time-mode . eat-eshell-visual-command-mode))
 #+end_src
 ** newsticker
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package newsticker
   :custom
   (newsticker-frontend 'newsticker-plainview)
@@ -317,49 +321,59 @@ using =emacs-first-time-mode= fixes the problem when new eshell buffer is opened
 #+end_src
 ** auto-complete
 enable completion preview in minibuffer
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package minibuffer
   :custom
-	(completion-auto-help nil) ;; disable *Completions*
-  (completion-styles '(flex)))
+	;; general
+  (tab-always-indent 'complete)
+	(completion-ignore-case t)
+	;; *Completions*
+	(completion-show-help nil)
+	(completions-format 'one-column)
+	(completions-max-height 20)
+	;; (completion-auto-select 'second-tab)
+	;; (completion-auto-help 'visible)
+	(completion-auto-help nil)
+	;; style
+  (completion-styles '(basic partial-completion flex)))
 (use-package completion-preview
-  :hook (after-init . global-completion-preview-mode))
-(use-package icomplete
-  :custom
-  (fido-vertical-mode t))
-(use-package corfu
-	:vc (:url "https://github.com/minad/corfu.git")
   :hook
-  (prog-mode . corfu-mode)
-  :custom
-	(corfu-auto t))
-(use-package cape
-	:vc (:url "https://github.com/minad/cape.git")
-  :init
-	(add-hook 'completion-at-point-functions #'cape-abbrev)
-	(add-hook 'completion-at-point-functions #'cape-dict)
-  (add-hook 'completion-at-point-functions #'cape-dabbrev)
-  (add-hook 'completion-at-point-functions #'cape-elisp-block)
-	(add-hook 'completion-at-point-functions #'cape-elisp-symbol)
-  (add-hook 'completion-at-point-functions #'cape-emoji)
-  (add-hook 'completion-at-point-functions #'cape-file)
-  (add-hook 'completion-at-point-functions #'cape-history)
-	(add-hook 'completion-at-point-functions #'cape-keyword))
+	((after-init . global-completion-preview-mode)
+	 (minibuffer-setup . completion-preview-mode))
+	:custom
+	(global-completion-preview-mode t))
+(use-package icomplete
+	:hook (after-init . fido-vertical-mode)
+	;; :bind (:map icomplete-minibuffer-map
+	;;			("C-n" . icomplete-forward-completions)
+	;;       ("C-p" . icomplete-backward-completions)
+	;;       ("RET" . icomplete-force-complete-and-exit))
+	;; :custom
+	;; (icomplete-in-buffer t)
+	;; (icomplete-scroll t)
+	;; (icomplete-show-matches-on-no-input t)
+  ;; (icomplete-hide-common-prefix nil)
+  ;; (icomplete-prospects-height 10)
+	;; (icomplete-delay-completions-threshold 0)
+	;; :config
+  ;; (advice-add 'completion-at-point
+	;;	  :after #'minibuffer-hide-completions)
+	)
 #+end_src
 ** avy
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package avy
   :vc (:url "https://github.com/abo-abo/avy.git")
   :bind ("C-;" . avy-goto-char))
 #+end_src
 ** apps
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package app-launcher
   :vc (:url "https://github.com/SebastienWae/app-launcher.git")
   :bind ("C-x C-q" . app-launcher-run-app))
 #+end_src
 ** pulsar
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package pulsar
   :vc (:url "https://github.com/protesilaos/pulsar.git")
   :custom
@@ -367,18 +381,18 @@ enable completion preview in minibuffer
   (pulsar-global-mode t))
 #+end_src
 ** flash cards
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package org-drill
   :vc (:url "https://gitlab.com/phillord/org-drill.git"))
 #+end_src
 ** ledger
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package ledger-mode
   :vc (:url "https://github.com/ledger/ledger-mode.git"))
 #+end_src
 ** pdf
 install with guix, vc isn't working
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package pdf-tools
   :vc (:url "https://github.com/vedang/pdf-tools.git")
   :magic ("%PDF" . pdf-view-mode)
@@ -391,7 +405,7 @@ install with guix, vc isn't working
   :after pdf-tools)
 #+end_src
 ** emms
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package emms
   :vc (:url "https://github.com/emacsmirror/emms.git")
   :bind
@@ -417,7 +431,7 @@ install with guix, vc isn't working
 #+end_src
 ** games
 idk why stockfish isn't playing
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package chess
   :vc (:url "https://github.com/jwiegley/emacs-chess.git")
   :custom
@@ -434,7 +448,7 @@ idk why stockfish isn't playing
 cannot load file "llama", so loading ement after llama fixed it for some reason
 erc, rcirc, gnus, whatsapp, reddit, twitter, mastodon
 ** gnus
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package gnus
   :hook
   (gnus-group-mode-hook . gnus-topic-mode)
@@ -459,14 +473,14 @@ erc, rcirc, gnus, whatsapp, reddit, twitter, mastodon
   (smtpmail-default-smtp-server "smtp.gmail.com"))
 #+end_src
 ** ement
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package ement
 	:vc (:url "https://github.com/alphapapa/ement.el.git")
 	:after llama)
 #+end_src
 * dev
 ** eglot
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package eglot
   :hook
   (sh-mode . eglot-ensure)
@@ -476,7 +490,7 @@ erc, rcirc, gnus, whatsapp, reddit, twitter, mastodon
   (js-jsx-mode . eglot-ensure))
 #+end_src
 ** gptel
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package gptel
   :vc (:url "https://github.com/karthink/gptel.git")
   :custom
@@ -504,7 +518,7 @@ erc, rcirc, gnus, whatsapp, reddit, twitter, mastodon
 							tngtech/deepseek-r1t2-chimera:free))))
 #+end_src
 ** docker
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package docker
   :vc (:url "https://github.com/Silex/docker.el.git")
 	:custom
@@ -520,7 +534,7 @@ erc, rcirc, gnus, whatsapp, reddit, twitter, mastodon
   :magic ("%YAML" . yaml-mode))
 #+end_src
 ** rust
-#+begin_src emacs-lisp :tangle "~/.config/emacs/init.el" :mkdirp yes
+#+begin_src emacs-lisp
 (use-package rust-mode
   :vc (:url "https://github.com/rust-lang/rust-mode.git"))
 #+end_src
