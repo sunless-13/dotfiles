@@ -1,4 +1,4 @@
-#+TITLE: my config
+#+TITLE: config
 #+PROPERTY: header-args :tangle "~/.config/emacs/init.el"
 * essentials
 #+begin_src emacs-lisp
@@ -115,7 +115,6 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 #+begin_src emacs-lisp
 (use-package org
   :magic ("%ORG" . org-mode)
-	:hook (org-mode . flyspell-mode)
   :custom
   (org-edit-src-content-indentation 0)
   (org-replace-disputed-keys t)
@@ -126,23 +125,15 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 	(org-src-fontify-natively t)
   (org-ellipsis " ")
 	(org-log-into-drawer t)
-  (org-agenda-files
+	(org-deadline-warning-days 2)
+	(org-log-into-drawer t)
+	(org-agenda-files
 	 '("~/alchemy/light/church"
 		 "~/alchemy/light/coding"
 		 "~/alchemy/light/control"
 		 "~/alchemy/light/linux"
 		 "~/alchemy/light/mortal"
 		 "~/alchemy/light/social"))
-	;; org todo
-  (org-todo-keywords
-   '((sequence "TODO(t)"
-	       "PLANNED(p)"
-	       "IN-PROGRESS(i)"
-	       "VERIFYING(v)"
-	       "|"
-	       "DONE"
-	       "HORIZON")))
-  (org-log-done 'time)
 	;; org capture
 	(org-capture-templates
    '(("c" "Cook" entry (file "~/alchemy/light/coding/cook.org")
@@ -158,6 +149,10 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 	 ))
 	(org-bookmark-names-plist nil)
   :init
+	(org-babel-do-load-languages
+   'org-babel-load-languages
+   '((emacs-lisp . t)
+		 (shell . t)))
   (defun my-reload-init-file ()
     "Reload the main Emacs configuration file (init.el)."
     (interactive)
@@ -168,15 +163,49 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 	 ("C-c l" . org-store-link)
 	 ("C-c c" . org-capture)
 	 ("C-x C-r" . my-reload-init-file)))
+#+end_src
+** org modern
+#+begin_src emacs-lisp
+(use-package org-modern
+  :vc (:url "https://github.com/minad/org-modern.git")
+	:custom
+	(global-org-modern-mode t))
+#+end_src
+** org agenda
+#+begin_src emacs-lisp
 (use-package org-agenda
 	:after org
+  :bind ("C-c a" . org-agenda)
 	:custom
+	(org-agenda-custom-commands
+	 '(
+		 ("n" "Agenda and all TODOs"
+			((agenda "")
+       (alltodo "")
+			 ))
+		 ("d" "Daily"
+			((agenda ""
+							 ((org-agenda-span 'day)
+								(org-agenda-overriding-header "Today")
+								))
+			 ))
+		 ("w" "Weekly"
+			((agenda ""
+							 ((org-agenda-span 'week)
+								(org-agenda-overriding-header "Week")
+								))
+			 ))
+		 ))
 	(org-agenda-show-log t)
 	(org-agenda-include-diary t)
 	(org-agenda-diary-file "~/alchemy/light/social")
   (org-agenda-skip-deadline-if-done t))
-(use-package bookmark
-	:bind ("C-c j" . bookmark-jump))
+#+end_src
+** org habit
+#+begin_src emacs-lisp
+(use-package org-habit
+	:custom
+	(org-habit-show-habits t))
 #+end_src
 * packages
 ** inbuilt
@@ -193,6 +222,8 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 (use-package autorevert
   :custom
   (auto-revert-interval 1)
+	(global-auto-revert-non-file-buffers t)
+	(auto-revert-verbose nil)
   (global-auto-revert-mode t))
 (use-package proced
   :custom
@@ -221,6 +252,8 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
   (save-place-limit 50))
 (use-package whitespace
   :hook (before-save-hook . whitespace-cleanup))
+(use-package bookmark
+	:bind ("C-c j" . bookmark-jump))
 #+end_src
 ** modus
 #+begin_src emacs-lisp
@@ -327,44 +360,36 @@ enable completion preview in minibuffer
 	;; general
   (tab-always-indent 'complete)
 	(completion-ignore-case t)
+	(completion-styles '(basic partial-completion flex))
 	;; *Completions*
 	(completion-show-help nil)
 	(completions-format 'one-column)
 	(completions-max-height 20)
-	;; (completion-auto-select 'second-tab)
-	;; (completion-auto-help 'visible)
-	(completion-auto-help nil)
-	;; style
-  (completion-styles '(basic partial-completion flex)))
+	(completion-auto-select 'second-tab)
+	(completion-auto-help 'visible))
 (use-package completion-preview
-  :hook
-	((after-init . global-completion-preview-mode)
-	 (minibuffer-setup . completion-preview-mode))
+  :hook (minibuffer-setup . completion-preview-mode)
 	:custom
-	(global-completion-preview-mode t))
+	(global-completion-preview-mode t)
+	(completion-preview-auto-mode t)
+	:bind (:map completion-preview-active-mode-map
+							("M-n" . completion-preview-next-candidate)
+							("M-p" . completion-preview-prev-candidate)))
 (use-package icomplete
-	:hook (after-init . fido-vertical-mode)
-	;; :bind (:map icomplete-minibuffer-map
-	;;			("C-n" . icomplete-forward-completions)
-	;;       ("C-p" . icomplete-backward-completions)
-	;;       ("RET" . icomplete-force-complete-and-exit))
-	;; :custom
-	;; (icomplete-in-buffer t)
-	;; (icomplete-scroll t)
-	;; (icomplete-show-matches-on-no-input t)
-  ;; (icomplete-hide-common-prefix nil)
-  ;; (icomplete-prospects-height 10)
-	;; (icomplete-delay-completions-threshold 0)
-	;; :config
-  ;; (advice-add 'completion-at-point
-	;;	  :after #'minibuffer-hide-completions)
-	)
-#+end_src
-** avy
-#+begin_src emacs-lisp
-(use-package avy
-  :vc (:url "https://github.com/abo-abo/avy.git")
-  :bind ("C-;" . avy-goto-char))
+  :hook (after-init . fido-vertical-mode)
+  :custom
+  (icomplete-in-buffer t)
+  (icomplete-scroll t)
+  (icomplete-show-matches-on-no-input t)
+  (icomplete-hide-common-prefix nil)
+  (icomplete-prospects-height 10)
+	:bind (:map icomplete-minibuffer-map
+							("C-n" . icomplete-forward-completions)
+							("C-p" . icomplete-backward-completions)
+							("RET" . icomplete-force-complete-and-exit))
+  :config
+  (advice-add 'completion-at-point
+							:after #'minibuffer-hide-completions))
 #+end_src
 ** apps
 #+begin_src emacs-lisp
@@ -487,7 +512,14 @@ erc, rcirc, gnus, whatsapp, reddit, twitter, mastodon
   (bash-ts-mode . eglot-ensure)
   (rust-mode . eglot-ensure)
   (rust-ts-mode . eglot-ensure)
-  (js-jsx-mode . eglot-ensure))
+  (js-jsx-mode . eglot-ensure)
+	(typescript-ts-mode . eglot-ensure)
+  (js-ts-mode . eglot-ensure)
+  (json-ts-mode . eglot-ensure)
+  (yaml-ts-mode . eglot-ensure)
+  (dockerfile-ts-mode . eglot-ensure)
+  (css-mode . eglot-ensure)
+  (html-mode . eglot-ensure))
 #+end_src
 ** gptel
 #+begin_src emacs-lisp
