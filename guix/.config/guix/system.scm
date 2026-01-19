@@ -1,7 +1,7 @@
 (use-modules (gnu)
 						 (nongnu packages linux)
 						 (nongnu system linux-initrd))
-(use-service-modules desktop admin docker xorg)
+(use-service-modules desktop admin xorg docker)
 
 (define %my-desktop-services
 	(modify-services %desktop-services
@@ -22,10 +22,11 @@
 	(keyboard-layout (keyboard-layout "us"))
 
 	;; grub
-	(bootloader (bootloader-configuration
-								(bootloader grub-efi-bootloader)
-								(targets '("/boot/efi"))
-								(timeout "0")))
+	(bootloader
+	 (bootloader-configuration
+		(bootloader grub-efi-bootloader)
+		(targets '("/boot/efi"))
+		(timeout "0")))
 
 	;; file system
 	(file-systems
@@ -45,23 +46,24 @@
 				(type "ext4"))) %base-file-systems))
 
 	;; users
-	(users (cons (user-account
-								 (name "sunless")
-								 (group "users")
-								 (supplementary-groups '("wheel" "audio" "video" "netdev"
-																				 "input" "docker"))) %base-user-accounts))
+	(users
+	 (cons
+		(user-account
+		 (name "sunless")
+		 (group "users")
+		 (supplementary-groups '("wheel" "audio" "video"
+														 "netdev" "docker" "input")))	%base-user-accounts))
 
 	;; packages
 	(packages %base-packages)
-
 	;; services
 	(services
-	 (append (list
-						(service bluetooth-service-type)
-						(service containerd-service-type)
-						(service docker-service-type))
-					 %my-desktop-services))
-
+	 (append
+		(list
+		 (service bluetooth-service-type)
+		 (service containerd-service-type)
+		 (service docker-service-type))
+		%my-desktop-services))
 
 	;; Allow resolution of '.local' host names with mDNS.
 	(name-service-switch %mdns-host-lookup-nss))

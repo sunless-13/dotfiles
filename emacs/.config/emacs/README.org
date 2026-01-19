@@ -1,6 +1,7 @@
-#+TITLE: config
+#+TITLE: my config
 #+PROPERTY: header-args :tangle "~/.config/emacs/init.el"
 * essentials
+** quality of life
 #+begin_src emacs-lisp
 (use-package emacs
   :custom
@@ -28,38 +29,11 @@
   (initial-major-mode 'fundamental-mode)
   (scroll-conservatively 101)
   (gc-cons-threshold (* 50 1024 1024))
-  ;; modeline
-  (mode-line-position-line-format nil)
-  (display-time-mode t)
-  (display-time-format "%H:%M %a %d %b")
-  (display-time-default-load-average nil)
-  (display-time-interval 1)
-  (mode-line-format
-   '(
-     (:eval
-(when (mode-line-window-selected-p)
-  "%b"
-  ))
-     (:eval
-(when (mode-line-window-selected-p)
-  " "
-  ))
-     (:eval
-(when (mode-line-window-selected-p)
-  mode-line-position
-  ))
-     ;; right side
-     mode-line-format-right-align
-     (:eval
-(when (mode-line-window-selected-p)
-  mode-line-misc-info
-  ))
-     )
-	 )
+
   :init
   (load-theme 'modus-vivendi-tritanopia)
   (set-face-attribute 'default nil
-		:height 90 :weight 'normal :family "DejaVu Sans Mono")
+											:height 90 :weight 'normal :family "DejaVu Sans Mono")
   (set-fontset-font t 'unicode "Noto Emoji" nil 'append)
 	:config
 	(defun kill-other-buffers ()
@@ -68,6 +42,7 @@
     (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
   :bind
 	(("C-x k" . kill-current-buffer)
+	 ("C-x K" . kill-buffer-and-window)
 	 ("C-c k" . kill-other-buffers)
 	 ("M-o" . other-window)
 	 ("C-x ;" . comment-line))
@@ -77,12 +52,95 @@
 																	 (float-time (time-subtract after-init-time before-init-time))
 																	 gcs-done))))
 #+end_src
+** modeline
+fix the repetitive =(:eval (when ( ....= when selected (preferrable disable modeline when window not selected)
+#+begin_src emacs-lisp
+(use-package emacs
+	:bind ("C-c b" . battery)
+	:custom
+  (mode-line-position-line-format nil)
+	(display-battery-mode t)
+	(battery-update-interval 1)
+  (display-time-mode t)
+  (display-time-format "%H:%M %a %d %b")
+  (display-time-default-load-average nil)
+	(project-mode-line t)
+	(global-mode-string
+	 '("" org-mode-line-string
+				battery-mode-line-string
+				display-time-string))
+  (mode-line-format
+   '(
+     (:eval
+			(when (mode-line-window-selected-p)
+				"%&"
+				))
+		 " "
+     (:eval
+			(when (mode-line-window-selected-p)
+				"%b"
+				))
+     " "
+     (:eval
+			(when (mode-line-window-selected-p)
+				"%p"
+				))
+     " "
+     (:eval
+			(when (mode-line-window-selected-p)
+				vc-mode
+				))
+     " "
+     (:eval
+			(when (mode-line-window-selected-p)
+				project-mode-line
+				))
+     ;; right side
+     mode-line-format-right-align
+     (:eval
+			(when (mode-line-window-selected-p)
+				mode-line-misc-info
+				))
+     )
+	 )
+	)
+#+end_src
+** windows
+#+begin_src emacs-lisp
+(use-package window
+	:custom
+  (display-buffer-alist
+	 '(("\\*Help\\*"
+			(display-buffer-same-window))
+		 ("\\*Apropos\\*"
+			(display-buffer-same-window))
+		 ("\\*Org todo\\*"
+			(display-buffer-same-window))
+		 ("\\*Org Agenda\\*"
+			(display-buffer-full-frame))
+		 ("\\*Org Select\\*"
+			(display-buffer-full-frame))
+		 ("\\*Org Src README.org\\[ emacs-lisp \\]\\*"
+			(display-buffer-same-window))
+		 ("\\Async Shell Command\\*"
+			(display-buffer-no-window))
+		 ;; added regex '*' to include project eshell
+		 ("\\**eshell\\*"
+			(display-buffer-in-side-window)
+			(window-height . 0.25)
+			(side . bottom))
+		 ))
+	)
+#+end_src
 * melpa
 idk why it's necessary for melpa packages like emojify
 #+begin_src emacs-lisp
 (use-package package
-  :config
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/") t)
+  :custom
+  (package-native-compile t)
+  (package-archives '(("gnu"   . "http://elpa.gnu.org/packages/")
+		      ("melpa" . "https://melpa.org/packages/")))
+	:config
   (package-initialize))
 (use-package use-package
   :custom
@@ -92,18 +150,14 @@ idk why it's necessary for melpa packages like emojify
 why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:use-package#Hooks][use-package#Hooks]])
 #+begin_src emacs-lisp
 (use-package dired
-  :bind
-	(:map dired-mode-map
-   ("C-b" . dired-up-directory)
-	 ("C-f" . dired-find-file))
   :hook
 	((dired-mode . dired-hide-details-mode)
    (dired-mode . hl-line-mode))
   :custom
   (dired-listing-switches "-Alh --group-directories-first")
   (dired-hide-details-hide-symlink-targets nil)
-  (dired-free-space nil)
-  (direqd-kill-when-opening-new-dired-buffer t)
+  ;; (dired-free-space nil)
+  (dired-kill-when-opening-new-dired-buffer t)
   (dired-recursive-copies 'always)
   (dired-recursive-deletes 'always)
   (dired-dwim-target t)
@@ -112,6 +166,7 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
      (".*" "xdg-open"))))
 #+end_src
 * org
+** basic
 #+begin_src emacs-lisp
 (use-package org
   :magic ("%ORG" . org-mode)
@@ -124,9 +179,17 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
   (org-pretty-entities t)
 	(org-src-fontify-natively t)
   (org-ellipsis " ")
+	;; clocking
+	(org-log-done 'time)
 	(org-log-into-drawer t)
 	(org-deadline-warning-days 2)
 	(org-log-into-drawer t)
+	;; org todo
+	(org-todo-keywords
+	 '((sequence "TODO(t)" "|" "DONE(d)")
+		 (sequence "ONLINE(o)" "QUICK(q)"  "CASH(c)" "|" "DONE(d)")
+		 ))
+	;; start by going through agenda files
 	(org-agenda-files
 	 '("~/alchemy/light/church"
 		 "~/alchemy/light/coding"
@@ -147,7 +210,16 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 		 ("j" "Journal" plain (file+datetree "~/alchemy/light/mortal/journal.org")
 			"%?")
 	 ))
+	;; bookmarks fix to stop capturing =org capture=
 	(org-bookmark-names-plist nil)
+	;; block templates
+	(org-structure-template-alist
+	 '(("s" . "src")
+		 ("b" . "src bash")
+		 ("e" . "src emacs-lisp")
+		 ("r" . "src rust")
+		 ("j" . "src javascript")
+		 ))
   :init
 	(org-babel-do-load-languages
    'org-babel-load-languages
@@ -159,9 +231,7 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
     (load-file user-init-file)
     (message "Configuration reloaded from %s" user-init-file))
   :bind
-	(("C-c a" . org-agenda)
-	 ("C-c l" . org-store-link)
-	 ("C-c c" . org-capture)
+	(("C-c l" . org-store-link)
 	 ("C-x C-r" . my-reload-init-file)))
 #+end_src
 ** org modern
@@ -169,18 +239,30 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 (use-package org-modern
   :vc (:url "https://github.com/minad/org-modern.git")
 	:custom
-	(global-org-modern-mode t))
+	(global-org-modern-mode t)
+	;; to fix buggy agenda
+	(org-modern-tag nil)
+	(org-modern-todo nil)
+	;; like ascii more
+	(org-modern-table nil))
 #+end_src
 ** org agenda
 #+begin_src emacs-lisp
 (use-package org-agenda
 	:after org
-  :bind ("C-c a" . org-agenda)
+  :bind
+	(("C-c a" . org-agenda)
+	 ("C-c c" . org-capture))
 	:custom
+	(org-agenda-show-log t)
+	(org-agenda-include-diary t)
+	(org-agenda-diary-file "~/alchemy/light/social")
+  (org-agenda-skip-deadline-if-done t)
 	(org-agenda-custom-commands
 	 '(
 		 ("n" "Agenda and all TODOs"
-			((agenda "")
+			((agenda ""
+							 ((org-agenda-start-on-weekday nil)))
        (alltodo "")
 			 ))
 		 ("d" "Daily"
@@ -193,19 +275,22 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 			((agenda ""
 							 ((org-agenda-span 'week)
 								(org-agenda-overriding-header "Week")
-								))
-			 ))
+								(org-agenda-start-on-weekday nil)
+								)
+							 ))
+			)
 		 ))
-	(org-agenda-show-log t)
-	(org-agenda-include-diary t)
-	(org-agenda-diary-file "~/alchemy/light/social")
-  (org-agenda-skip-deadline-if-done t))
+	)
 #+end_src
 ** org habit
 #+begin_src emacs-lisp
-(use-package org-habit
+(use-package org-habit)
+#+end_src
+** org cycle
+#+begin_src emacs-lisp
+(use-package org-cycle
 	:custom
-	(org-habit-show-habits t))
+	(org-cycle-hide-block-startup t))
 #+end_src
 * packages
 ** inbuilt
@@ -245,7 +330,8 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
   :custom
   (history-length 50)
   (history-delete-duplicates t)
-  :hook minibuffer-mode)
+	:init
+	(savehist-mode))
 (use-package saveplace
   :custom
   (save-place-mode t)
@@ -297,7 +383,6 @@ using =emacs-first-time-mode= fixes the problem when new eshell buffer is opened
 #+begin_src emacs-lisp
 (use-package newsticker
   :custom
-  (newsticker-frontend 'newsticker-plainview)
   (newsticker-url-list '(
 			 ;; emacs
 			 ("Planet Emacslife" "https://planet.emacslife.com/atom.xml")
@@ -353,43 +438,103 @@ using =emacs-first-time-mode= fixes the problem when new eshell buffer is opened
 			 )))
 #+end_src
 ** auto-complete
-enable completion preview in minibuffer
+enable completion preview in org mode
 #+begin_src emacs-lisp
+(use-package emacs
+  :custom
+  (tab-always-indent 'complete))
 (use-package minibuffer
   :custom
-	;; general
   (tab-always-indent 'complete)
 	(completion-ignore-case t)
-	(completion-styles '(basic partial-completion flex))
-	;; *Completions*
-	(completion-show-help nil)
-	(completions-format 'one-column)
-	(completions-max-height 20)
-	(completion-auto-select 'second-tab)
-	(completion-auto-help 'visible))
+	(completion-styles '(basic substring partial-completion flex))
+	(completions-sort 'historical))
 (use-package completion-preview
-  :hook (minibuffer-setup . completion-preview-mode)
+  :hook
+	((minibuffer-setup . completion-preview-mode)
+	 (org-mode . completion-preview-mode)
+	 (emacs-lisp-mode . completion-preview-mode)
+	 (eshell-mode . completion-preview-mode))
 	:custom
-	(global-completion-preview-mode t)
+	(completion-preview-mode t)
 	(completion-preview-auto-mode t)
-	:bind (:map completion-preview-active-mode-map
-							("M-n" . completion-preview-next-candidate)
-							("M-p" . completion-preview-prev-candidate)))
+	:bind
+	(:map completion-preview-active-mode-map
+				("M-n" . completion-preview-next-candidate)
+				("M-p" . completion-preview-prev-candidate)))
 (use-package icomplete
-  :hook (after-init . fido-vertical-mode)
+	:bind
+	(:map icomplete-minibuffer-map
+				("C-n" . icomplete-forward-completions)
+				("C-p" . icomplete-backward-completions)
+				("TAB" . icomplete-force-complete))
   :custom
-  (icomplete-in-buffer t)
-  (icomplete-scroll t)
+	(fido-mode t)
+	(icomplete-scroll t)
   (icomplete-show-matches-on-no-input t)
-  (icomplete-hide-common-prefix nil)
-  (icomplete-prospects-height 10)
-	:bind (:map icomplete-minibuffer-map
-							("C-n" . icomplete-forward-completions)
-							("C-p" . icomplete-backward-completions)
-							("RET" . icomplete-force-complete-and-exit))
-  :config
-  (advice-add 'completion-at-point
+  (icomplete-prospects-height 1)
+	(icomplete-in-buffer t)
+	:config
+	(advice-add 'completion-at-point
 							:after #'minibuffer-hide-completions))
+(use-package cape
+  :vc (:url "https://github.com/minad/cape")
+	:init
+  (add-hook 'completion-at-point-functions #'cape-history)
+  (add-hook 'completion-at-point-functions #'cape-emoji)
+  (add-hook 'completion-at-point-functions #'cape-dict)
+  (add-hook 'completion-at-point-functions #'cape-abbrev)
+  (add-hook 'completion-at-point-functions #'cape-dabbrev)
+  (add-hook 'completion-at-point-functions #'cape-file)
+  (add-hook 'completion-at-point-functions #'cape-keyword)
+  (add-hook 'completion-at-point-functions #'cape-elisp-block)
+  (add-hook 'completion-at-point-functions #'cape-elisp-symbol))
+#+end_src
+*** COMMENT bloated
+#+begin_src emacs-lisp
+(use-package emacs
+	:custom
+	(text-mode-ispell-word-completion nil))
+(use-package vertico
+  :vc (:url "https://github.com/minad/vertico")
+	:custom
+  (vertico-scroll-margin 0)
+  (vertico-count 20)
+  (vertico-resize t)
+  (vertico-cycle t)
+  :init
+  (vertico-mode))
+(use-package marginalia
+  :vc (:url "https://github.com/minad/marginalia")
+	:after vertico
+  :init
+  (marginalia-mode))
+(use-package corfu
+  :vc (:url "https://github.com/minad/corfu")
+	:custom
+  (corfu-auto t)
+  (corfu-cycle t)
+  (corfu-quit-at-boundary nil)
+  (corfu-quit-no-match nil)
+  (corfu-preview-current nil)
+  (corfu-preselect 'prompt)
+  (corfu-on-exact-match 'insert)
+  :hook
+	((prog-mode . corfu-mode)
+	 (shell-mode . corfu-mode)
+	 (eshell-mode . corfu-mode)))
+(use-package cape
+  :vc (:url "https://github.com/minad/cape")
+	:init
+  (add-hook 'completion-at-point-functions #'cape-history)
+  (add-hook 'completion-at-point-functions #'cape-emoji)
+  (add-hook 'completion-at-point-functions #'cape-dict)
+  (add-hook 'completion-at-point-functions #'cape-abbrev)
+  (add-hook 'completion-at-point-functions #'cape-dabbrev)
+  (add-hook 'completion-at-point-functions #'cape-file)
+  (add-hook 'completion-at-point-functions #'cape-keyword)
+  (add-hook 'completion-at-point-functions #'cape-elisp-block)
+  (add-hook 'completion-at-point-functions #'cape-elisp-symbol))
 #+end_src
 ** apps
 #+begin_src emacs-lisp
@@ -467,7 +612,7 @@ idk why stockfish isn't playing
 (use-package sudoku
   :vc (:url "https://github.com/zevlg/sudoku.el.git")
 	:custom
-	(sudoku-level 'medium))
+	(sudoku-level 'easy))
 #+end_src
 * social
 cannot load file "llama", so loading ement after llama fixed it for some reason
@@ -521,23 +666,28 @@ erc, rcirc, gnus, whatsapp, reddit, twitter, mastodon
   (css-mode . eglot-ensure)
   (html-mode . eglot-ensure))
 #+end_src
+** tramp
+ai generated
+#+begin_src emacs-lisp
+(use-package tramp
+  :config
+	(with-eval-after-load 'tramp
+  ;; 1. Add the standard Cargo path to TRAMP's search list
+  (add-to-list 'tramp-remote-path "/usr/local/cargo/bin")
+  ;; 2. Tell TRAMP to use the PATH defined in the remote shell (e.g., from your Dockerfile)
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)))
+#+end_src
 ** gptel
 #+begin_src emacs-lisp
 (use-package gptel
   :vc (:url "https://github.com/karthink/gptel.git")
   :custom
   (gptel-default-mode #'org-mode)
-  (gptel-model 'tngtech/deepseek-r1t2-chimera:free)
+  (gptel-model 'tinyllama:latest)
 	:bind (("C-c g g" . gptel)
 				 ("C-c g m" . gptel-menu)
 				 ("C-c g s" . gptel-send))
   :config
-  ;; ollama
-  (setq gptel-backend
-  (gptel-make-ollama "Ollama"
-    :host "localhost:11434"
-    :stream t
-    :models '(tinyllama:latest)))
 	;; open router
 	(setq gptel-backend
   (gptel-make-openai "OpenRouter"
@@ -547,7 +697,14 @@ erc, rcirc, gnus, whatsapp, reddit, twitter, mastodon
     :key (gptel-api-key-from-auth-source "api.openrouter.ai")
     :models '(kwaipilot/kat-coder-pro:free
 							mistralai/devstral-2512:free
-							tngtech/deepseek-r1t2-chimera:free))))
+							tngtech/deepseek-r1t2-chimera:free)))
+  ;; ollama
+  (setq gptel-backend
+  (gptel-make-ollama "Ollama"
+    :host "localhost:11434"
+    :stream t
+    :models '(tinyllama:latest)))
+)
 #+end_src
 ** docker
 #+begin_src emacs-lisp
@@ -566,7 +723,16 @@ erc, rcirc, gnus, whatsapp, reddit, twitter, mastodon
   :magic ("%YAML" . yaml-mode))
 #+end_src
 ** rust
+ #+begin_src emacs-lisp
+ (use-package rustic
+   :vc (:url "https://github.com/emacs-rustic/rustic.git")
+   :custom
+	(rustic-lsp-client 'eglot)
+   (rustic-cargo-use-last-stored-arguments t))
+ #+end_src
+** envrc
 #+begin_src emacs-lisp
-(use-package rust-mode
-  :vc (:url "https://github.com/rust-lang/rust-mode.git"))
+(use-package envrc
+  :vc (:url "https://github.com/purcell/envrc.git")
+	:hook (after-init . envrc-global-mode))
 #+end_src

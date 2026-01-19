@@ -7,7 +7,6 @@
 						 (gnu home services desktop)
 						 (gnu home services dotfiles)
 						 (gnu packages))
-
 (home-environment
 	(packages
 	 (specifications->packages
@@ -31,11 +30,15 @@
 		 "ghostscript"
 		 "imagemagick"
 		 "xpdf"
+		 "openssh"
+		 "adb"
+		 "calibre"
 		 "font-google-noto-sans-cjk"
 		 "font-google-noto-emoji"
 		 "font-dejavu"
+		 "font-iosevka"
 		 "font-microsoft-times-new-roman"
-		 "openssh"
+		 ;"bibata-cursor-theme"
 		 ;; noice apps
 		 "aria2"
 		 "yt-dlp"
@@ -49,10 +52,11 @@
 		 "wf-recorder"
 		 "pipewire"
 		 "wireplumber"
-		 "ledger"
 		 ;; emacs
 		 "chess"
 		 "guile"
+		 "ispell"
+		 "ledger"
 		 "emacs-pgtk"
 		 "emacs-guix"
 		 "emacs-geiser"
