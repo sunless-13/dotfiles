@@ -53,7 +53,7 @@
 																	 gcs-done))))
 #+end_src
 ** modeline
-fix the repetitive =(:eval (when ( ....= when selected (preferrable disable modeline when window not selected)
+fix the repetitive (preferrable disable modeline when window not selected)
 #+begin_src emacs-lisp
 (use-package emacs
 	:bind ("C-c b" . battery)
@@ -73,27 +73,21 @@ fix the repetitive =(:eval (when ( ....= when selected (preferrable disable mode
    '(
      (:eval
 			(when (mode-line-window-selected-p)
-				"%&"
+				"%b"
 				))
 		 " "
      (:eval
 			(when (mode-line-window-selected-p)
-				"%b"
+				mode-line-position
 				))
-     " "
      (:eval
 			(when (mode-line-window-selected-p)
-				"%p"
+				project-mode-line-format
 				))
      " "
      (:eval
 			(when (mode-line-window-selected-p)
 				vc-mode
-				))
-     " "
-     (:eval
-			(when (mode-line-window-selected-p)
-				project-mode-line
 				))
      ;; right side
      mode-line-format-right-align
@@ -147,6 +141,7 @@ idk why it's necessary for melpa packages like emojify
   (use-package-vc-prefer-newest t))
 #+end_src
 * dired
+** basic
 why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:use-package#Hooks][use-package#Hooks]])
 #+begin_src emacs-lisp
 (use-package dired
@@ -164,6 +159,12 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
   (dired-guess-shell-alist-user
    '(("\\.\\(mp[34]\\|m4a\\|ogg\\|flac\\|webm\\|mkv\\)" "mpv")
      (".*" "xdg-open"))))
+#+end_src
+** wdired
+#+begin_src emacs-lisp
+(use-package wdired
+	:custom
+	(wdired-allow-to-change-permissions t))
 #+end_src
 * org
 ** basic
@@ -191,23 +192,17 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 		 ))
 	;; start by going through agenda files
 	(org-agenda-files
-	 '("~/alchemy/light/church"
-		 "~/alchemy/light/coding"
-		 "~/alchemy/light/control"
-		 "~/alchemy/light/linux"
-		 "~/alchemy/light/mortal"
-		 "~/alchemy/light/social"))
+	 '("~/alchemy/insanity/kifa"
+		 "~/alchemy/insanity/mortal"
+		 "~/alchemy/insanity/os"
+		 "~/alchemy/insanity/scholar"
+		 "~/alchemy/insanity/soul"
+		 "~/alchemy/insanity/tech"))
 	;; org capture
 	(org-capture-templates
-   '(("c" "Cook" entry (file "~/alchemy/light/coding/cook.org")
-      "* %?")
-     ("k" "Kifa" entry (file "~/alchemy/light/control/fire.org")
-      "* %?")
-     ("f" "Fleeting" plain (file "~/alchemy/light/mortal/fleet.org")
-      "%?")
-     ("q" "Quest" entry (file "~/alchemy/light/mortal/quest.org")
+   '(("q" "Quest" entry (file "~/alchemy/insanity/mortal/quest.org")
       "* TODO %?")
-		 ("j" "Journal" plain (file+datetree "~/alchemy/light/mortal/journal.org")
+		 ("j" "Journal" plain (file+datetree "~/alchemy/insanity/mortal/journal.org")
 			"%?")
 	 ))
 	;; bookmarks fix to stop capturing =org capture=
@@ -238,6 +233,7 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 #+begin_src emacs-lisp
 (use-package org-modern
   :vc (:url "https://github.com/minad/org-modern.git")
+	:after org
 	:custom
 	(global-org-modern-mode t)
 	;; to fix buggy agenda
@@ -256,7 +252,7 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 	:custom
 	(org-agenda-show-log t)
 	(org-agenda-include-diary t)
-	(org-agenda-diary-file "~/alchemy/light/social")
+	(org-agenda-diary-file "~/alchemy/insanity/mortal/contacts.org")
   (org-agenda-skip-deadline-if-done t)
 	(org-agenda-custom-commands
 	 '(
@@ -284,11 +280,13 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 #+end_src
 ** org habit
 #+begin_src emacs-lisp
-(use-package org-habit)
+(use-package org-habit
+	:after org)
 #+end_src
 ** org cycle
 #+begin_src emacs-lisp
 (use-package org-cycle
+	:after orgc
 	:custom
 	(org-cycle-hide-block-startup t))
 #+end_src
@@ -450,13 +448,13 @@ enable completion preview in org mode
 	(completion-styles '(basic substring partial-completion flex))
 	(completions-sort 'historical))
 (use-package completion-preview
-  :hook
-	((minibuffer-setup . completion-preview-mode)
-	 (org-mode . completion-preview-mode)
-	 (emacs-lisp-mode . completion-preview-mode)
-	 (eshell-mode . completion-preview-mode))
+  ;; :hook
+	;; ((minibuffer-setup . completion-preview-mode)
+	;;  (org-mode . completion-preview-mode)
+	;;  (emacs-lisp-mode . completion-preview-mode)
+	;;  (eshell-mode . completion-preview-mode))
 	:custom
-	(completion-preview-mode t)
+	(global-completion-preview-mode t)
 	(completion-preview-auto-mode t)
 	:bind
 	(:map completion-preview-active-mode-map
@@ -539,8 +537,8 @@ enable completion preview in org mode
 ** apps
 #+begin_src emacs-lisp
 (use-package app-launcher
-  :vc (:url "https://github.com/SebastienWae/app-launcher.git")
-  :bind ("C-x C-q" . app-launcher-run-app))
+  :vc (:url "https://github.com/SebastienWae/app-launcher.git"))
+  ;; :bind ("C-x C-q" . app-launcher-run-app))
 #+end_src
 ** pulsar
 #+begin_src emacs-lisp
