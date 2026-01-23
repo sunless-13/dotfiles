@@ -44,6 +44,7 @@
 	(("C-x k" . kill-current-buffer)
 	 ("C-x K" . kill-buffer-and-window)
 	 ("C-c k" . kill-other-buffers)
+	 ("C-c e" . emoji-insert)
 	 ("M-o" . other-window)
 	 ("C-x ;" . comment-line))
   :hook
@@ -52,23 +53,32 @@
 																	 (float-time (time-subtract after-init-time before-init-time))
 																	 gcs-done))))
 #+end_src
+** battery
+#+begin_src emacs-lisp
+(use-package battery
+	:bind ("C-c b" . battery)
+	:custom
+	(display-battery-mode t)
+	(battery-mode-line-format "[%p%% %L %mm]"))
+#+end_src
+** time
+#+begin_src emacs-lisp
+(use-package time
+	:custom
+	(display-time-mode t)
+  (display-time-default-load-average nil)
+  (display-time-format "%H:%M %a %d %b"))
+#+end_src
 ** modeline
 fix the repetitive (preferrable disable modeline when window not selected)
 #+begin_src emacs-lisp
 (use-package emacs
-	:bind ("C-c b" . battery)
 	:custom
   (mode-line-position-line-format nil)
-	(display-battery-mode t)
-	(battery-update-interval 1)
-  (display-time-mode t)
-  (display-time-format "%H:%M %a %d %b")
-  (display-time-default-load-average nil)
-	(project-mode-line t)
 	(global-mode-string
 	 '("" org-mode-line-string
-				battery-mode-line-string
-				display-time-string))
+		    display-time-string
+				battery-mode-line-string))
   (mode-line-format
    '(
      (:eval
@@ -92,9 +102,9 @@ fix the repetitive (preferrable disable modeline when window not selected)
      ;; right side
      mode-line-format-right-align
      (:eval
-			(when (mode-line-window-selected-p)
-				mode-line-misc-info
-				))
+				(when (mode-line-window-selected-p)
+					mode-line-misc-info
+			 ))
      )
 	 )
 	)
@@ -111,6 +121,8 @@ fix the repetitive (preferrable disable modeline when window not selected)
 		 ("\\*Org todo\\*"
 			(display-buffer-same-window))
 		 ("\\*Org Agenda\\*"
+			(display-buffer-full-frame))
+		 ("\\*Proced\\*"
 			(display-buffer-full-frame))
 		 ("\\*Org Select\\*"
 			(display-buffer-full-frame))
@@ -146,12 +158,10 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 #+begin_src emacs-lisp
 (use-package dired
   :hook
-	((dired-mode . dired-hide-details-mode)
-   (dired-mode . hl-line-mode))
+  (dired-mode . hl-line-mode)
   :custom
   (dired-listing-switches "-Alh --group-directories-first")
   (dired-hide-details-hide-symlink-targets nil)
-  ;; (dired-free-space nil)
   (dired-kill-when-opening-new-dired-buffer t)
   (dired-recursive-copies 'always)
   (dired-recursive-deletes 'always)
@@ -200,9 +210,9 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 		 "~/alchemy/insanity/tech"))
 	;; org capture
 	(org-capture-templates
-   '(("q" "Quest" entry (file "~/alchemy/insanity/mortal/quest.org")
-      "* TODO %?")
-		 ("j" "Journal" plain (file+datetree "~/alchemy/insanity/mortal/journal.org")
+   '(("c" "Chaos" plain (file "~/alchemy/insanity/chaos.org")
+      "%?")
+		 ("j" "Journal" plain (file+datetree "~/alchemy/insanity/emo/soul/journal.org")
 			"%?")
 	 ))
 	;; bookmarks fix to stop capturing =org capture=
@@ -330,14 +340,20 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
   (history-delete-duplicates t)
 	:init
 	(savehist-mode))
-(use-package saveplace
-  :custom
-  (save-place-mode t)
-  (save-place-limit 50))
+;; (use-package saveplace
+;;   :custom
+;;   (save-place-mode t)
+;;   (save-place-limit 50))
 (use-package whitespace
   :hook (before-save-hook . whitespace-cleanup))
 (use-package bookmark
 	:bind ("C-c j" . bookmark-jump))
+#+end_src
+** project
+#+begin_src emacs-lisp
+(use-package project
+	:custom
+	(project-mode-line t))
 #+end_src
 ** modus
 #+begin_src emacs-lisp
@@ -369,7 +385,7 @@ using =emacs-first-time-mode= fixes the problem when new eshell buffer is opened
 			(eshell-emit-prompt)
 			(insert input)))
   :bind
-	(("C-c e" . eshell)
+	(("C-c s" . eshell)
 	 ("C-l" . my-eshell-clear-scrollback)))
 (use-package eat
   :vc (:url "https://codeberg.org/akib/emacs-eat.git")
