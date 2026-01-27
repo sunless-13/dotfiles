@@ -65,12 +65,12 @@ animations {
 		off
 }
 spawn-sh-at-startup "emacs --daemon"
+spawn-sh-at-startup "emacsclient --create-frame --eval '(org-agenda-list)"
 spawn-sh-at-startup "mako"
 binds {
-		Mod+Return { spawn-sh "emacsclient --create-frame"; }
+		Mod+Return { spawn "emacsclient --create-frame"; }
 		Mod+E { spawn-sh "emacs"; }
 		Mod+O { spawn-sh "emacs --eval '(org-agenda-list)'"; }
-		Mod+C { spawn-sh "emacsclient --create-frame --eval '(org-capture)'"; }
 		Mod+Shift+Return { spawn "icecat"; }
 		Mod+P { spawn "chromium"; }
 

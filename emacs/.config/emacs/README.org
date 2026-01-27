@@ -127,27 +127,26 @@ fix the repetitive (preferrable disable modeline when window not selected)
 			(display-buffer-same-window))
 		 ("\\*Apropos\\*"
 			(display-buffer-same-window))
-		 ("\\*Org todo\\*"
-			(display-buffer-same-window))
 		 ("\\*Agenda Commands\\*"
 			(display-buffer-same-window))
 		 ("\\*Org Agenda\\*"
 			(display-buffer-same-window))
 		 ("\\*vc-dir\\*"
 			(display-buffer-same-window))
-		 ("\\*Proced\\*"
-			(display-buffer-full-frame))
-		 ("\\*Org Select\\*"
-			(display-buffer-full-frame))
-		 ("\\*Org Src README.org\\[ emacs-lisp \\]\\*"
+		 ("\\*vc-log\\*"
 			(display-buffer-same-window))
+		 ("\\**eshell\\*"
+			(display-buffer-below-selected))
+		 ("\\*Org todo\\*"
+			(display-buffer-below-selected))
+		 ("\\*Org Select\\*"
+			(display-buffer-below-selected))
+		 ("\\*Org Src README.org\\[ emacs-lisp \\]\\*"
+			(display-buffer-below-selected))
 		 ("\\Async Shell Command\\*"
 			(display-buffer-no-window))
-		 ;; added regex '*' to include project eshell
-		 ("\\**eshell\\*"
-			(display-buffer-in-side-window)
-			(window-height . 0.25)
-			(side . bottom))
+		 ("\\*Proced\\*"
+			(display-buffer-full-frame))
 		 ))
 	)
 #+end_src
@@ -195,7 +194,7 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 		 ("j" . "src javascript")
 		 ))
   (org-todo-keywords
-   '((sequence "TODO" "ONLINE" "|" "DONE")))
+   '((sequence "TODO(t)" "ONLINE(o)" "NIGHT(n)" "|" "DONE(d)")))
   :bind
 	("C-c l" . org-store-link))
 (use-package org-src
@@ -658,6 +657,33 @@ ai generated fix for docker rust dev
     :models '(tinyllama:latest)))
 )
 #+end_src
+*** docker
+#+begin_src emacs-lisp
+(use-package docker
+	:custom
+	(docker-container-columns
+	 '((:name "Names" :width 10 :template "{{ json .Names }}" :sort nil :format nil)
+		 (:name "Status" :width 20 :template "{{ json .Status }}" :sort nil :format nil)
+		 (:name "Ports" :width 10 :template "{{ json .Ports }}" :sort nil :format nil)
+		 (:name "Command" :width 30 :template "{{ json .Command }}" :sort nil :format nil)
+		 (:name "Image" :width 15 :template "{{ json .Image }}" :sort nil :format nil))))
+(use-package dockerfile-mode)
+(use-package yaml-mode
+  :magic ("%YAML" . yaml-mode))
+#+end_src
+*** rust
+ #+begin_src emacs-lisp
+(use-package rustic
+   :custom
+ 	(rustic-lsp-client 'eglot)
+   (rustic-cargo-use-last-stored-arguments t))
+ #+end_src
+*** envrc
+#+begin_src emacs-lisp
+(use-package envrc
+	:init
+	(envrc-global-mode))
+#+end_src
 * later
 ** COMMENT melpa
 i'm using guix so i don't need to download packages normally
@@ -724,34 +750,4 @@ i'm using guix so i don't need to download packages normally
   (add-hook 'completion-at-point-functions #'cape-keyword)
   (add-hook 'completion-at-point-functions #'cape-elisp-block)
   (add-hook 'completion-at-point-functions #'cape-elisp-symbol))
-#+end_src
-** COMMENT docker
-#+begin_src emacs-lisp
-(use-package docker
-  :vc (:url "https://github.com/Silex/docker.el.git")
-	:custom
-	(docker-container-columns '((:name "Names" :width 10 :template "{{ json .Names }}" :sort nil :format nil)
-															(:name "Status" :width 20 :template "{{ json .Status }}" :sort nil :format nil)
-															(:name "Ports" :width 10 :template "{{ json .Ports }}" :sort nil :format nil)
-															(:name "Command" :width 30 :template "{{ json .Command }}" :sort nil :format nil)
-															(:name "Image" :width 15 :template "{{ json .Image }}" :sort nil :format nil))))
-(use-package dockerfile-mode
-  :vc (:url "https://github.com/spotify/dockerfile-mode.git"))
-(use-package yaml-mode
-  :vc (:url "https://github.com/yoshiki/yaml-mode.git")
-  :magic ("%YAML" . yaml-mode))
-#+end_src
-** COMMENT rust
- #+begin_src emacs-lisp
- (use-package rustic
-   :vc (:url "https://github.com/emacs-rustic/rustic.git")
-   :custom
-	(rustic-lsp-client 'eglot)
-   (rustic-cargo-use-last-stored-arguments t))
- #+end_src
-** COMMENT envrc
-#+begin_src emacs-lisp
-(use-package envrc
-  :vc (:url "https://github.com/purcell/envrc.git")
-	:hook (after-init . envrc-global-mode))
 #+end_src
