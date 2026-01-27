@@ -15,8 +15,7 @@ input {
 		focus-follows-mouse max-scroll-amount="0%"
 }
 cursor {
-		xcursor-theme "Bibata Modern Classic"
-		xcursor-size 24
+		xcursor-size 12
 		hide-when-typing
 		hide-after-inactive-ms 500
 }
@@ -66,6 +65,7 @@ animations {
 		off
 }
 spawn-sh-at-startup "emacs --daemon"
+spawn-sh-at-startup "mako"
 binds {
 		Mod+Return { spawn-sh "emacsclient --create-frame"; }
 		Mod+E { spawn-sh "emacs"; }

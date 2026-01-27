@@ -16,9 +16,8 @@ yt-dlp \
 		--no-keep-fragments \
 		--quiet \
 		--progress \
-		-t mp4 \
 		--format-sort "res:480" \
 		--audio-quality 0 \
 		--embed-subs \
 		--embed-chapters \
-		"$1" 
+		"$1"
