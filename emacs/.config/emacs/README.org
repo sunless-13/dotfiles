@@ -438,6 +438,10 @@ ensure =eat (emulate a terminal)= is installed (and other inferior terminals uni
 	 :map eshell-arg-mode-map
 	 ("C-l" . my-eshell-clear-scrollback)))
 #+end_src
+*** irc
+#+begin_src emacs-lisp
+
+#+end_src
 *** TODO newsticker
 debloat news
 #+begin_src emacs-lisp
@@ -540,13 +544,6 @@ use hippie expand instead of cape
   (add-hook 'completion-at-point-functions #'cape-elisp-symbol))
 #+end_src
 ** external
-*** disable
-#+begin_src emacs-lisp
-(use-package magit
-	:defer t)
-(use-package elfeed
-	:defer t)
-#+end_src
 *** pdf
 #+begin_src emacs-lisp
 (use-package pdf-tools
@@ -644,7 +641,8 @@ use as rss reader
 *** eglot
 #+begin_src emacs-lisp
 (use-package eglot
-  :hook ((rust-mode . eglot-ensure)
+  :hook
+	((rust-mode . eglot-ensure)
 	 (before-save . eglot-format-buffer))
   :bind (("C-c i i" . eglot-find-implementation)
 	 ("C-c i e" . eglot)
@@ -680,7 +678,7 @@ use as rss reader
 	      (setq eldoc-documentation-strategy #'eldoc-documentation-compose)))
   )
 #+end_src
-*** tramp
+*** COMMENT tramp
 ai generated fix for docker rust dev
 #+begin_src emacs-lisp
 (use-package tramp
@@ -728,9 +726,10 @@ ai generated fix for docker rust dev
 *** rust
  #+begin_src emacs-lisp
 (use-package rustic
-   :custom
- 	(rustic-lsp-client 'eglot)
-   (rustic-cargo-use-last-stored-arguments t))
+  :magic ("%RS" . rustic-mode)
+  :custom
+  (rustic-lsp-client 'eglot)
+  (rustic-cargo-use-last-stored-arguments t))
  #+end_src
 *** envrc
 #+begin_src emacs-lisp

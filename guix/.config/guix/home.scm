@@ -97,12 +97,12 @@
 		 (service home-openssh-service-type)
 		 (service home-gpg-agent-service-type)
 		 (service home-niri-service-type)
-		 (service home-batsignal-service-type)
+		 ;; (service home-batsignal-service-type)
 		 (service home-bash-service-type
 				(home-bash-configuration
 					(aliases
 					 '(
-							("ls" . "eza --almost-all --git-ignore")
+							("ls" . "ls --almost-all")
 							("u" . "guix home reconfigure ~/alchemy/dotfiles/guix/.config/guix/home.scm")
 							))
 					(environment-variables
