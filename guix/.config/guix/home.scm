@@ -2,10 +2,13 @@
 						 (guix gexp)
 						 (gnu home services)
 						 (gnu home services shells)
+						 (gnu home services gnupg)
 						 (gnu home services ssh)
 						 (gnu home services sound)
 						 (gnu home services desktop)
 						 (gnu home services dotfiles)
+						 (gnu home services niri)
+						 (gnu home services pm)
 						 (gnu packages))
 (home-environment
 	(packages
@@ -13,28 +16,23 @@
 		(list
 		 ;; essentials
 		 "fastfetch-minimal"
-		 "nss-certs"
 		 "openssl"
 		 "dbus"
+		 "openssh"
+		 "adb"
 		 "brightnessctl"
 		 "unzip"
-		 "glibc-locales"
+     "glibc-locales"
 		 "curl"
 		 "git-minimal"
-		 "groff"
 		 "tree"
 		 "which"
-		 "eza"
 		 "grep"
-		 "bat"
+		 "direnv"
 		 "stow"
 		 "fontconfig"
 		 "groff"
-		 "ghostscript"
-		 "imagemagick"
 		 "xpdf"
-		 "openssh"
-		 "adb"
 		 "font-google-noto-sans-cjk"
 		 "font-google-noto-emoji"
 		 "font-dejavu"
@@ -44,7 +42,9 @@
 		 "yt-dlp"
 		 "mpv"
 		 "icecat-minimal"
-		 "ungoogled-chromium-wayland"
+		 "ghostscript"
+		 "imagemagick"
+		 "groff"		 
 		 "niri"
 		 "xwayland-satellite"
 		 "xdg-desktop-portal-gtk"
@@ -55,6 +55,8 @@
 		 "pipewire"
 		 "wireplumber"
 		 "ledger"
+		 "podman"
+		 "podman-compose"
 		 ;; emacs
 		 "chess"
 		 "guile"
@@ -66,8 +68,8 @@
 		 "emacs-pdf-tools"
 		 "emacs-eat"
 		 "emacs-org-modern"
-		 "emacs-pulsar"
 		 "emacs-org-drill"
+		 "emacs-pulsar"
 		 ;; apps
 		 "emacs-emms"
 		 "emacs-gptel"
@@ -76,12 +78,15 @@
 		 "emacs-sudoku"
 		 "emacs-app-launcher"
 		 "emacs-ledger-mode"
+		 "emacs-ement"
 		 ;; dev
-		 "emacs-docker"
+		 "emacs-corfu"
+		 "emacs-cape"
 		 "emacs-dockerfile-mode"
 		 "emacs-yaml-mode"
 		 "emacs-rustic"
 		 "emacs-envrc"
+		 "emacs-lorem-ipsum"		 
 		 )))
 	;; add dotfiles
 	(services
@@ -90,6 +95,9 @@
 		 (service home-pipewire-service-type)
 		 (service home-dbus-service-type)
 		 (service home-openssh-service-type)
+		 (service home-gpg-agent-service-type)
+		 (service home-niri-service-type)
+		 (service home-batsignal-service-type)
 		 (service home-bash-service-type
 				(home-bash-configuration
 					(aliases
@@ -101,6 +109,7 @@
 					 '(
 							("PATH" . "$PATH:$HOME/.local/bin")
 							("GUIX_PROFILE" . "$HOME/.guix-profile")
+							("GUIX_EXTRA_PROFILES" . "$HOME/.guix-extra-profiles")
 							("SSL_CERT_DIR" . "$HOME/.guix-profile/etc/ssl/certs")
 							("SSL_CERT_FILE" . "$HOME/.guix-profile/etc/ssl/certs/ca-certificates.crt")
 							("GIT_SSL_CAINFO" . "$SSL_CERT_FILE")

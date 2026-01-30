@@ -43,7 +43,7 @@ layout {
 		border {
 				off
 				width 0
-				active-color "#ffc87f"
+				active-color "#777777"
 				inactive-color "#505050"
 				urgent-color "#9b0000"
 		}
@@ -64,11 +64,14 @@ screenshot-path "~/pics/%Y-%m-%d %H-%M-%S.png"
 animations {
 		off
 }
-spawn-sh-at-startup "emacs --daemon"
-spawn-sh-at-startup "emacsclient --create-frame --eval '(org-agenda-list)"
+window-rule {
+    open-maximized true
+}
 spawn-sh-at-startup "mako"
+spawn-sh-at-startup "swaybg -i ~/stash/pics/ecl.jpg"
+spawn-sh-at-startup "emacs --daemon"
 binds {
-		Mod+Return { spawn "emacsclient --create-frame"; }
+		Mod+Return { spawn-sh "emacsclient --create-frame --eval '(global-org-modern-mode)'"; }
 		Mod+E { spawn-sh "emacs"; }
 		Mod+O { spawn-sh "emacs --eval '(org-agenda-list)'"; }
 		Mod+Shift+Return { spawn "icecat"; }

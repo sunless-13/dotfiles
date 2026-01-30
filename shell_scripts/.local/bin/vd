@@ -16,7 +16,7 @@ yt-dlp \
 		--no-keep-fragments \
 		--quiet \
 		--progress \
-		--format-sort "res:480" \
+		--format-sort "res:720" \
 		--audio-quality 0 \
 		--embed-subs \
 		--embed-chapters \

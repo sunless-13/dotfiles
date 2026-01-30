@@ -19,7 +19,6 @@
   (fringe-mode 0)
   (use-short-answers t)
 	(make-backup-files nil)
-  (auto-save-default nil)
   (create-lockfiles nil))
 #+end_src
 ** quality of life
@@ -31,12 +30,16 @@
   (global-visual-line-mode t)
   (scroll-conservatively 101)
   (gc-cons-threshold (* 50 1024 1024))
+	(delete-selection-mode t)
 	:config
   (load-theme 'modus-vivendi-tritanopia)
   (set-face-attribute 'default nil
 											:height 90
 											:weight 'normal
 											:family "DejaVu Sans Mono")
+	;; transparency
+	(set-frame-parameter nil 'alpha-background 90)
+	(add-to-list 'default-frame-alist '(alpha-background . 90))
   ;; custom function for deleting other buffers
 	(defun KILL-ALL-other-buffers ()
     "Kill all other buffers."
@@ -127,14 +130,14 @@ fix the repetitive (preferrable disable modeline when window not selected)
 			(display-buffer-same-window))
 		 ("\\*Apropos\\*"
 			(display-buffer-same-window))
-		 ("\\*Agenda Commands\\*"
-			(display-buffer-same-window))
 		 ("\\*Org Agenda\\*"
 			(display-buffer-same-window))
 		 ("\\*vc-dir\\*"
 			(display-buffer-same-window))
 		 ("\\*vc-log\\*"
 			(display-buffer-same-window))
+		 ("\\*Agenda Commands\\*"
+			(display-buffer-below-selected))
 		 ("\\**eshell\\*"
 			(display-buffer-below-selected))
 		 ("\\*Org todo\\*"
@@ -157,6 +160,7 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 (use-package dired
   :hook
   ((dired-mode . hl-line-mode)
+	 (dired-mode . guix-prettify-mode)
 	 (dired-mode . dired-hide-details-mode))
   :custom
   (dired-listing-switches "-Alh --group-directories-first")
@@ -283,16 +287,18 @@ enable this org module to start working with habits
 #+end_src
 ** org modern
 love the =src= blocks and =bullets=
+disable in tty
 #+begin_src emacs-lisp
 (use-package org-modern
-	:after org
+	:if (display-graphic-p)
 	:custom
 	(global-org-modern-mode t)
 	;; to fix buggy agenda
 	(org-modern-tag nil)
 	(org-modern-todo nil)
 	;; like ascii more
-	(org-modern-table nil))
+	(org-modern-table nil)
+	)
 #+end_src
 * packages
 ** libraries
@@ -338,6 +344,8 @@ love the =src= blocks and =bullets=
 *** proced
 #+begin_src emacs-lisp
 (use-package proced
+  :hook
+	(proced-mode . guix-prettify-mode)
   :custom
   (proced-auto-update-flag t)
   (proced-auto-update-interval 1)
@@ -366,21 +374,20 @@ love the =src= blocks and =bullets=
   :bind	("C-x C-b" . ibuffer)
   :hook
 	((ibuffer-mode . hl-line-mode)
-  (ibuffer-mode . (lambda ()
-		    (ibuffer-switch-to-saved-filter-groups "Main"))))
+	 (ibuffer-mode . guix-prettify-mode)
+	 (ibuffer-mode . (lambda ()
+										 (ibuffer-switch-to-saved-filter-groups "home")
+										 (ibuffer-auto-mode t)
+										 )))
   :custom
   (ibuffer-display-summary nil)
-  (ibuffer-use-other-window nil)
   (ibuffer-show-empty-filter-groups nil)
-  (ibuffer-default-sorting-mode 'filename/process)
-  (ibuffer-title-face 'font-lock-doc-face)
-  (ibuffer-use-header-line t)
-  (ibuffer-default-shrink-to-minimum-size nil)
   (ibuffer-saved-filter-groups
-	'(("Main"
-	   ("Directories" (mode . dired-mode))
-	   ("Org" (mode . org-mode))
-	   ("Emacs" (or
+	'(("home"
+		 ("guix" (directory . "gixx"))
+		 ("dotfiles" (directory . "dotfiles"))
+		 ("insanity" (directory . "insanity"))
+	   ("emacs" (or
 		     (mode . emacs-lisp-mode)
 		     (name . "^\\*Help\\*$")
 		     (name . "^\\*Custom.*")
@@ -388,7 +395,8 @@ love the =src= blocks and =bullets=
 		     (name . "^\\*info\\*$")
 		     (name . "^\\*scratch\\*$")
 		     (name . "^\\*Backtrace\\*$")
-		     (name . "^\\*Messages\\*$")))))))
+		     (name . "^\\*Messages\\*$"))))))
+)
 #+end_src
 *** modus
 #+begin_src emacs-lisp
@@ -411,7 +419,10 @@ ensure =eat (emulate a terminal)= is installed (and other inferior terminals uni
 #+begin_src emacs-lisp
 (use-package eshell
 	:hook
-	(eshell-mode . eat-eshell-mode)
+	((eshell-mode-hook . (lambda ()
+												 (setq-local corfu-auto nil)
+												 (corfu-mode)))
+	 (eshell-load . eat-eshell-mode))
   :custom
   (eshell-banner-message "")
   :config
@@ -490,9 +501,6 @@ debloat news
 enable completion preview in org mode
 use hippie expand instead of cape
 #+begin_src emacs-lisp
-(use-package emacs
-  :custom
-  (tab-always-indent 'complete))
 (use-package minibuffer
   :custom
   (tab-always-indent 'complete)
@@ -501,29 +509,44 @@ use hippie expand instead of cape
 	(completions-sort 'historical))
 (use-package completion-preview
 	:custom
-	(global-completion-preview-mode t)
-	(completion-preview-auto-mode t)
-	:bind
-	(:map completion-preview-active-mode-map
-				("M-n" . completion-preview-next-candidate)
-				("M-p" . completion-preview-prev-candidate)))
+	(global-completion-preview-mode t))
 (use-package icomplete
-	:bind
-	(:map icomplete-minibuffer-map
-				("C-n" . icomplete-forward-completions)
-				("C-p" . icomplete-backward-completions)
-				("TAB" . icomplete-force-complete))
   :custom
-	(fido-mode t)
-	(icomplete-scroll t)
-  (icomplete-show-matches-on-no-input t)
-  (icomplete-prospects-height 1)
-	(icomplete-in-buffer t)
-	:config
-	(advice-add 'completion-at-point
-							:after #'minibuffer-hide-completions))
+	(fido-vertical-mode t))
+(use-package emacs
+  :custom
+  (tab-always-indent 'complete)
+	(text-mode-ispell-word-completion nil)
+  (read-extended-command-predicate #'command-completion-default-include-p))
+(use-package corfu
+	:hook
+	((prog-mode . corfu-mode)
+   (eshell-mode . corfu-mode))
+	:custom
+  (corfu-cycle t)
+	(corfu-auto-delay 0.2)
+	(corfu-quit-no-match 'separator)
+  (corfu-auto t))
+(use-package cape
+	:init
+  (add-hook 'completion-at-point-functions #'cape-history)
+  (add-hook 'completion-at-point-functions #'cape-emoji)
+  (add-hook 'completion-at-point-functions #'cape-dict)
+  (add-hook 'completion-at-point-functions #'cape-abbrev)
+  (add-hook 'completion-at-point-functions #'cape-dabbrev)
+  (add-hook 'completion-at-point-functions #'cape-file)
+  (add-hook 'completion-at-point-functions #'cape-keyword)
+  (add-hook 'completion-at-point-functions #'cape-elisp-block)
+  (add-hook 'completion-at-point-functions #'cape-elisp-symbol))
 #+end_src
 ** external
+*** disable
+#+begin_src emacs-lisp
+(use-package magit
+	:defer t)
+(use-package elfeed
+	:defer t)
+#+end_src
 *** pdf
 #+begin_src emacs-lisp
 (use-package pdf-tools
@@ -572,9 +595,9 @@ use hippie expand instead of cape
 #+begin_src emacs-lisp
 (use-package ledger-mode)
 #+end_src
-*** pass
+*** lorem-ipsum
 #+begin_src emacs-lisp
-;; (use-package pass)
+(use-package lorem-ipsum)
 #+end_src
 *** TODO games
 idk why stockfish isn't playing
@@ -618,6 +641,45 @@ use as rss reader
   (smtpmail-default-smtp-server "smtp.gmail.com"))
 #+end_src
 ** dev
+*** eglot
+#+begin_src emacs-lisp
+(use-package eglot
+  :hook ((rust-mode . eglot-ensure)
+	 (before-save . eglot-format-buffer))
+  :bind (("C-c i i" . eglot-find-implementation)
+	 ("C-c i e" . eglot)
+	 ("C-c i k" . eglot-shutdown-all)
+	 ("C-c i r" . eglot-rename)
+	 ("C-c i x" . eglot-reconnect)
+	 ("C-c i a" . eglot-code-actions)
+	 ("C-c i m" . eglot-menu)
+	 ("C-c i f" . eglot-format-buffer)
+	 ("C-c i h" . eglot-inlay-hints-mode))
+  :init
+  (setq eglot-autoshutdown t
+	eglot-confirm-server-edits nil
+	eglot-report-progress t
+	eglot-extend-to-xref t
+	eglot-autoreconnect t)
+  :config
+  (setq-default eglot-workspace-configuration
+		'(:rust-analyzer (:check (:command "clippy")
+				  :cargo (:sysroot "discover"
+							  :features "all"
+							  :buildScripts (:enable t))
+				  :diagnostics (:disabled ["macro-error"])
+				  :procMacro (:enable t))))
+
+  (add-hook 'eglot-managed-mode-hook
+	    (lambda ()
+	      ;; Show flymake diagnostics first.
+	      (setq eldoc-documentation-functions
+		    (cons #'flymake-eldoc-function
+			  (remove #'flymake-eldoc-function eldoc-documentation-functions)))
+	      ;; Show all eldoc feedback.
+	      (setq eldoc-documentation-strategy #'eldoc-documentation-compose)))
+  )
+#+end_src
 *** tramp
 ai generated fix for docker rust dev
 #+begin_src emacs-lisp
@@ -657,16 +719,8 @@ ai generated fix for docker rust dev
     :models '(tinyllama:latest)))
 )
 #+end_src
-*** docker
+*** podman
 #+begin_src emacs-lisp
-(use-package docker
-	:custom
-	(docker-container-columns
-	 '((:name "Names" :width 10 :template "{{ json .Names }}" :sort nil :format nil)
-		 (:name "Status" :width 20 :template "{{ json .Status }}" :sort nil :format nil)
-		 (:name "Ports" :width 10 :template "{{ json .Ports }}" :sort nil :format nil)
-		 (:name "Command" :width 30 :template "{{ json .Command }}" :sort nil :format nil)
-		 (:name "Image" :width 15 :template "{{ json .Image }}" :sort nil :format nil))))
 (use-package dockerfile-mode)
 (use-package yaml-mode
   :magic ("%YAML" . yaml-mode))
@@ -706,6 +760,10 @@ i'm using guix so i don't need to download packages normally
 	:after llama)
 #+end_src
 ** COMMENT auto-completion
+vertico doesn't delete entire dir-word when backspace
+marginalia is buggy with fido-vertical-mode
+thinking about replacing corfu with (icomplete in buffer t)
+cape with hippie expand functions or something like that
 #+begin_src emacs-lisp
 (use-package emacs
 	:custom

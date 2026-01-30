@@ -1,7 +1,9 @@
 (use-modules (gnu)
 						 (nongnu packages linux)
-						 (nongnu system linux-initrd))
-(use-service-modules desktop admin xorg docker)
+						 (nongnu system linux-initrd)
+)
+(use-service-modules desktop admin xorg containers)
+(use-modules (gnu system accounts))
 
 (define %my-desktop-services
 	(modify-services %desktop-services
@@ -52,7 +54,7 @@
 		 (name "sunless")
 		 (group "users")
 		 (supplementary-groups '("wheel" "audio" "video"
-														 "netdev" "docker" "input")))	%base-user-accounts))
+														 "netdev" "cgroup" "input")))	%base-user-accounts))
 
 	;; packages
 	(packages %base-packages)
@@ -61,8 +63,15 @@
 	 (append
 		(list
 		 (service bluetooth-service-type)
-		 (service containerd-service-type)
-		 (service docker-service-type))
+		 ;; (service iptables-service-type)
+		 (service rootless-podman-service-type
+							(rootless-podman-configuration
+							 (subgids
+								(list (subid-range (name "sunless"))))
+							 (subuids
+								(list (subid-range (name "sunless")))))
+							)
+		 )
 		%my-desktop-services))
 
 	;; Allow resolution of '.local' host names with mDNS.
