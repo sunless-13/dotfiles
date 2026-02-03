@@ -1,3 +1,4 @@
+#+PR
 * my dotfiles
 use =stow= to setup symlinks
 the setup with =guix home reconfigure home.scm= to track it

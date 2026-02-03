@@ -1,6 +1,15 @@
 #+TITLE: my config
 #+PROPERTY: header-args :tangle "~/.config/emacs/init.el"
 * essentials
+** early-init
+prevent flash bang
+#+begin_src emacs-lisp :tangle "~/.config/emacs/early-init.el"
+(use-package emacs
+	:init
+	(setq mode-line-format nil)						
+	(set-face-attribute 'default nil :background "#000000" :foreground "#ffffff")
+	(set-face-attribute 'mode-line nil :background "#000000" :foreground "#ffffff" :box 'unspecified))
+#+end_src
 ** minimal
 #+begin_src emacs-lisp
 (use-package emacs
@@ -18,6 +27,8 @@
   (ring-bell-function 'ignore)
   (fringe-mode 0)
   (use-short-answers t)
+	(sentence-end-double-space nil)
+	(text-mode-ispell-word-completion nil) ;; fix dictionary
 	(make-backup-files nil)
   (create-lockfiles nil))
 #+end_src
@@ -25,12 +36,16 @@
 #+begin_src emacs-lisp
 (use-package emacs
   :custom
+	(auto-save-no-message t)
+	(auto-save-interval 100) ;; save after 100 characters
+	(auto-save-timeout 20) ;; save after 20s of idle
   (visible-bell t)
   (tab-width 2)
   (global-visual-line-mode t)
-  (scroll-conservatively 101)
-  (gc-cons-threshold (* 50 1024 1024))
-	(delete-selection-mode t)
+  (delete-selection-mode t)
+	(xterm-mouse-mode t)
+	(scroll-conservatively 101)
+	(gc-cons-threshold (* 50 1024 1024))
 	:config
   (load-theme 'modus-vivendi-tritanopia)
   (set-face-attribute 'default nil
@@ -56,6 +71,47 @@
 													(message "Loaded in %.2fs"
 																	 (float-time (time-subtract after-init-time before-init-time))
 																	 gcs-done))))
+;; usefull right click
+(when (display-graphic-p)
+	(use-package emacs
+		:init
+		(context-menu-mode)))
+;; select help
+(use-package help
+	:custom
+	(help-window-select t))
+#+end_src
+** windows
+#+begin_src emacs-lisp
+(use-package window
+	:custom
+  (display-buffer-alist
+	 '(("\\*Apropos\\*"
+			(display-buffer-same-window))
+		 ("\\*Org Agenda\\*"
+			(display-buffer-same-window))
+		 ("\\*vc-dir\\*"
+			(display-buffer-same-window))
+		 ("\\*vc-log\\*"
+			(display-buffer-same-window))
+		 ("\\*Agenda Commands\\*"
+			(display-buffer-below-selected))
+		 ("\\**eshell\\*"
+			(display-buffer-below-selected)
+      (window-height . 0.3))
+		 ("\\*Org todo\\*"
+			(display-buffer-below-selected)
+      (window-height . 0.1))
+		 ("\\*Org Select\\*"
+			(display-buffer-below-selected))
+		 ("\\*Org Src README.org\\[ emacs-lisp \\]\\*"
+			(display-buffer-below-selected))
+		 ("\\Async Shell Command\\*"
+			(display-buffer-no-window))
+		 ("\\*Proced\\*"
+			(display-buffer-full-frame))
+		 ))
+	)
 #+end_src
 ** modeline
 *** battery
@@ -121,44 +177,12 @@ fix the repetitive (preferrable disable modeline when window not selected)
 	 )
 	)
 #+end_src
-** windows
-#+begin_src emacs-lisp
-(use-package window
-	:custom
-  (display-buffer-alist
-	 '(("\\*Help\\*"
-			(display-buffer-same-window))
-		 ("\\*Apropos\\*"
-			(display-buffer-same-window))
-		 ("\\*Org Agenda\\*"
-			(display-buffer-same-window))
-		 ("\\*vc-dir\\*"
-			(display-buffer-same-window))
-		 ("\\*vc-log\\*"
-			(display-buffer-same-window))
-		 ("\\*Agenda Commands\\*"
-			(display-buffer-below-selected))
-		 ("\\**eshell\\*"
-			(display-buffer-below-selected))
-		 ("\\*Org todo\\*"
-			(display-buffer-below-selected))
-		 ("\\*Org Select\\*"
-			(display-buffer-below-selected))
-		 ("\\*Org Src README.org\\[ emacs-lisp \\]\\*"
-			(display-buffer-below-selected))
-		 ("\\Async Shell Command\\*"
-			(display-buffer-no-window))
-		 ("\\*Proced\\*"
-			(display-buffer-full-frame))
-		 ))
-	)
-#+end_src
 * dired
-** TODO basic
+** basic
 why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:use-package#Hooks][use-package#Hooks]])
 #+begin_src emacs-lisp
 (use-package dired
-  :hook
+  :hook 
   ((dired-mode . hl-line-mode)
 	 (dired-mode . guix-prettify-mode)
 	 (dired-mode . dired-hide-details-mode))
@@ -169,8 +193,9 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
   (dired-recursive-copies 'always)
   (dired-recursive-deletes 'always)
   (dired-dwim-target t)
-  (dired-guess-shell-alist-user
+	(dired-guess-shell-alist-user
    '(("\\.\\(mp[34]\\|m4a\\|ogg\\|flac\\|webm\\|mkv\\)" "mpv")
+     ("\\.html?\\'" "icecat")
      (".*" "xdg-open"))))
 #+end_src
 ** wdired
@@ -189,6 +214,8 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
   (org-hide-emphasis-markers t)
   (org-pretty-entities t)
   (org-ellipsis " ")
+	(org-hide-leading-stars t)
+	(org-use-speed-commands t)
 	;; block templates
 	(org-structure-template-alist
 	 '(("s" . "src")
@@ -291,16 +318,22 @@ disable in tty
 #+begin_src emacs-lisp
 (use-package org-modern
 	:if (display-graphic-p)
+	:ensure t
 	:custom
-	(global-org-modern-mode t)
-	;; to fix buggy agenda
-	(org-modern-tag nil)
-	(org-modern-todo nil)
-	;; like ascii more
-	(org-modern-table nil)
-	)
+	(global-org-modern-mode t))
 #+end_src
 * packages
+** melpa
+i'm using guix so i don't need to download packages normally
+#+begin_src emacs-lisp
+(use-package package
+  :custom
+  (package-native-compile t)
+  (package-archives '(("gnu"   . "http://elpa.gnu.org/packages/")
+											("melpa" . "https://melpa.org/packages/")))
+	:config
+  (package-initialize))
+#+end_src
 ** libraries
 *** prog mode
 #+begin_src emacs-lisp
@@ -437,12 +470,55 @@ ensure =eat (emulate a terminal)= is installed (and other inferior terminals uni
 	(("C-c s" . eshell)
 	 :map eshell-arg-mode-map
 	 ("C-l" . my-eshell-clear-scrollback)))
+(use-package eat
+	:ensure t)
+#+end_src
+*** gnus
+test sending and receiving email
+use as rss reader
+#+begin_src emacs-lisp
+(use-package gnus
+  :hook
+  (gnus-group-mode-hook . gnus-topic-mode)
+  :custom
+  ;; personal info
+  (user-full-name "Sunless")
+  (user-mail-address "sunlesskelv@gmail.com")
+  (gnus-select-method '(nnnil ""))
+  ;; main news
+  (gnus-secondary-select-methods '((nnimap "gmail"
+																					 (nnimap-address "imap.gmail.com")
+																					 (nnimap-server-port "imaps")
+																					 (nnimap-stream ssl))))
+  (gnus-directory "~/.config/emacs/news")
+  (message-directory "~/.config/emacs/mail")
+  (nnfolder-directory "~/.config/emacs/mail/archive")
+  ;; random
+  (gnus-interactive-exit nil)
+  (gnus-asynchronous t)
+  ;; sending mail
+  (message-send-mail-function 'smtpmail-send-it)
+  (smtpmail-default-smtp-server "smtp.gmail.com"))
 #+end_src
 *** irc
 #+begin_src emacs-lisp
-
+(use-package rcirc
+	:custom
+	(rcirc-server-alist
+	 '(("irc.libera.chat"
+			:nick "sunless"
+			:channels ("#guix")
+			:port 6697
+			:encryption tls)))
+	(rcirc-default-full-name "Darkness blinds as the Light")
+	(rcirc-cycle-completion-flag t)
+	(rcirc-track-minor-mode t)
+	 :config
+  ;; Setting this here bypasses the quoting issues in :custom
+  (setq rcirc-authinfo 
+        `(("Libera.Chat" nickserv "sunless" ,(auth-source-pick-first-password :host "irc")))))
 #+end_src
-*** TODO newsticker
+*** newsticker
 debloat news
 #+begin_src emacs-lisp
 (use-package newsticker
@@ -461,14 +537,10 @@ debloat news
 			 ;; reddit
 			 ("r/emacs" "https://www.reddit.com/r/emacs.rss")
 			 ("r/guix" "https://www.reddit.com/r/guix.rss")
-			 ("r/coding" "https://www.reddit.com/r/coding.rss")
-			 ("r/programming" "https://www.reddit.com/r/programming.rss")
-			 ("r/learnprogramming" "https://www.reddit.com/r/learnprogramming.rss")
 			 ("r/rust" "https://www.reddit.com/r/rust.rss")
 			 ("r/leptos" "https://www.reddit.com/r/leptos.rss")
 			 ("r/rust_gamedev" "https://www.reddit.com/r/rust_gamedev.rss")
 			 ("r/javascript" "https://www.reddit.com/r/javascript.rss")
-			 ("r/learnjavascript" "https://www.reddit.com/r/learnjavascript.rss")
 			 ("r/react" "https://www.reddit.com/r/react.rss")
 			 ("r/minimalist" "https://www.reddit.com/r/minimalist.rss")
 			 ("r/tech_minimalism" "https://www.reddit.com/r/tech_minimalism.rss")
@@ -501,37 +573,38 @@ debloat news
 			 ("hn best" "https://morss.it/https://hnrss.org/best")
 			 )))
 #+end_src
-*** TODO auto-complete
-enable completion preview in org mode
-use hippie expand instead of cape
+*** auto-complete
+capfs inbuilt
 #+begin_src emacs-lisp
-(use-package minibuffer
-  :custom
-  (tab-always-indent 'complete)
-	(completion-ignore-case t)
-	(completion-styles '(basic substring partial-completion flex))
-	(completions-sort 'historical))
+(use-package emacs
+	:custom
+	(tab-always-indent 'complete)
+	(completion-ignore-case t))
 (use-package completion-preview
 	:custom
 	(global-completion-preview-mode t))
+(use-package minibuffer
+  :custom
+	(read-file-name-completion-ignore-case t)
+	(completion-styles '(basic substring partial-completion initials flex))
+	(completions-sort 'historical))
 (use-package icomplete
-  :custom
-	(fido-vertical-mode t))
-(use-package emacs
-  :custom
-  (tab-always-indent 'complete)
-	(text-mode-ispell-word-completion nil)
-  (read-extended-command-predicate #'command-completion-default-include-p))
-(use-package corfu
-	:hook
-	((prog-mode . corfu-mode)
-   (eshell-mode . corfu-mode))
+	:hook (after-init . fido-vertical-mode)
+  :bind (:map icomplete-minibuffer-map
+							("C-n" . icomplete-forward-completions)
+              ("C-p" . icomplete-backward-completions)
+              ("<TAB>" . icomplete-force-complete))
 	:custom
-  (corfu-cycle t)
-	(corfu-auto-delay 0.2)
-	(corfu-quit-no-match 'separator)
-  (corfu-auto t))
+	(icomplete-compute-delay 0)
+	(icomplete-prospects-height 10)
+	(icomplete-show-matches-on-no-input t)
+	(icomplete-scroll t)
+	(icomplete-in-buffer t)
+	:config
+	(advice-add 'completion-at-point
+              :after #'minibuffer-hide-completions))
 (use-package cape
+	:ensure t
 	:init
   (add-hook 'completion-at-point-functions #'cape-history)
   (add-hook 'completion-at-point-functions #'cape-emoji)
@@ -547,7 +620,8 @@ use hippie expand instead of cape
 *** pdf
 #+begin_src emacs-lisp
 (use-package pdf-tools
-  :magic ("%PDF" . pdf-view-mode)
+	:ensure t
+	:mode ("\\.pdf$" . pdf-view-mode)
   :custom (pdf-view-display-size 'fit-height)
   :hook (pdf-view-mode . pdf-view-themed-minor-mode)
   :config
@@ -556,6 +630,7 @@ use hippie expand instead of cape
 *** pulsar
 #+begin_src emacs-lisp
 (use-package pulsar
+	:ensure t
   :custom
 	(pulsar-face 'pulsar-red)
   (pulsar-global-mode t))
@@ -563,6 +638,7 @@ use hippie expand instead of cape
 *** emms
 #+begin_src emacs-lisp
 (use-package emms
+	:ensure t
   :bind
   (("C-c m m" . emms)
 	 ("C-c m p" . emms-pause)
@@ -586,112 +662,43 @@ use hippie expand instead of cape
 #+end_src
 *** flash cards
 #+begin_src emacs-lisp
-(use-package org-drill)
+(use-package org-drill
+	:ensure t)
 #+end_src
 *** ledger-mode
 #+begin_src emacs-lisp
-(use-package ledger-mode)
+(use-package ledger-mode
+	:ensure t
+	:mode ("\\.dat$" . ledger-mode)
+  :hook (before-save-hook . (lambda () (ledger-mode-clean-buffer)))
+	:custom
+	(ledger-complete-in-steps t))
 #+end_src
 *** lorem-ipsum
 #+begin_src emacs-lisp
-(use-package lorem-ipsum)
+(use-package lorem-ipsum
+	:ensure t)
 #+end_src
-*** TODO games
+*** games
 idk why stockfish isn't playing
-install typint
 #+begin_src emacs-lisp
 (use-package chess
+	:ensure t
   :custom
   (chess-default-engine #'chess-gnuchess)
   (chess-default-display #'chess-ics1))
-;; (use-package typit)
+(use-package typit
+	:ensure t)
 (use-package sudoku
+	:ensure t
 	:custom
 	(sudoku-level 'easy))
 #+end_src
-** social
-*** TODO gnus
-test sending and receiving email
-use as rss reader
-#+begin_src emacs-lisp
-(use-package gnus
-  :hook
-  (gnus-group-mode-hook . gnus-topic-mode)
-  :custom
-  ;; personal info
-  (user-full-name "Sunless")
-  (user-mail-address "sunlesskelv@gmail.com")
-  (gnus-select-method '(nnnil ""))
-  ;; main news
-  (gnus-secondary-select-methods '((nnimap "gmail"
-																					 (nnimap-address "imap.gmail.com")
-																					 (nnimap-server-port "imaps")
-																					 (nnimap-stream ssl))))
-  (gnus-directory "~/.config/emacs/news")
-  (message-directory "~/.config/emacs/mail")
-  (nnfolder-directory "~/.config/emacs/mail/archive")
-  ;; random
-  (gnus-interactive-exit nil)
-  (gnus-asynchronous t)
-  ;; sending mail
-  (message-send-mail-function 'smtpmail-send-it)
-  (smtpmail-default-smtp-server "smtp.gmail.com"))
-#+end_src
 ** dev
-*** eglot
-#+begin_src emacs-lisp
-(use-package eglot
-  :hook
-	((rust-mode . eglot-ensure)
-	 (before-save . eglot-format-buffer))
-  :bind (("C-c i i" . eglot-find-implementation)
-	 ("C-c i e" . eglot)
-	 ("C-c i k" . eglot-shutdown-all)
-	 ("C-c i r" . eglot-rename)
-	 ("C-c i x" . eglot-reconnect)
-	 ("C-c i a" . eglot-code-actions)
-	 ("C-c i m" . eglot-menu)
-	 ("C-c i f" . eglot-format-buffer)
-	 ("C-c i h" . eglot-inlay-hints-mode))
-  :init
-  (setq eglot-autoshutdown t
-	eglot-confirm-server-edits nil
-	eglot-report-progress t
-	eglot-extend-to-xref t
-	eglot-autoreconnect t)
-  :config
-  (setq-default eglot-workspace-configuration
-		'(:rust-analyzer (:check (:command "clippy")
-				  :cargo (:sysroot "discover"
-							  :features "all"
-							  :buildScripts (:enable t))
-				  :diagnostics (:disabled ["macro-error"])
-				  :procMacro (:enable t))))
-
-  (add-hook 'eglot-managed-mode-hook
-	    (lambda ()
-	      ;; Show flymake diagnostics first.
-	      (setq eldoc-documentation-functions
-		    (cons #'flymake-eldoc-function
-			  (remove #'flymake-eldoc-function eldoc-documentation-functions)))
-	      ;; Show all eldoc feedback.
-	      (setq eldoc-documentation-strategy #'eldoc-documentation-compose)))
-  )
-#+end_src
-*** COMMENT tramp
-ai generated fix for docker rust dev
-#+begin_src emacs-lisp
-(use-package tramp
-  :config
-	(with-eval-after-load 'tramp
-  ;; 1. Add the standard Cargo path to TRAMP's search list
-  (add-to-list 'tramp-remote-path "/usr/local/cargo/bin")
-  ;; 2. Tell TRAMP to use the PATH defined in the remote shell (e.g., from your Dockerfile)
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)))
-#+end_src
 *** gptel
 #+begin_src emacs-lisp
 (use-package gptel
+	:ensure t
   :custom
   (gptel-default-mode #'org-mode)
   (gptel-model 'tinyllama:latest)
@@ -705,8 +712,8 @@ ai generated fix for docker rust dev
     :host "openrouter.ai"
     :endpoint "/api/v1/chat/completions"
     :stream t
-    :key (gptel-api-key-from-auth-source "api.openrouter.ai")
-    :models '(kwaipilot/kat-coder-pro:free
+		:key (auth-source-pick-first-password :host "openrouter.ai")
+		:models '(kwaipilot/kat-coder-pro:free
 							mistralai/devstral-2512:free
 							tngtech/deepseek-r1t2-chimera:free)))
   ;; ollama
@@ -717,94 +724,29 @@ ai generated fix for docker rust dev
     :models '(tinyllama:latest)))
 )
 #+end_src
-*** podman
-#+begin_src emacs-lisp
-(use-package dockerfile-mode)
-(use-package yaml-mode
-  :magic ("%YAML" . yaml-mode))
-#+end_src
 *** rust
  #+begin_src emacs-lisp
-(use-package rustic
-  :magic ("%RS" . rustic-mode)
-  :custom
-  (rustic-lsp-client 'eglot)
-  (rustic-cargo-use-last-stored-arguments t))
+ (use-package rustic
+ 	:ensure t
+   :mode ("\\.rs$" . rustic-mode)
+   :custom
+     (rustic-lsp-client 'eglot)
+     (rustic-cargo-use-last-stored-arguments t))
  #+end_src
 *** envrc
 #+begin_src emacs-lisp
 (use-package envrc
+	:ensure t
 	:init
 	(envrc-global-mode))
 #+end_src
 * later
-** COMMENT melpa
-i'm using guix so i don't need to download packages normally
-#+begin_src emacs-lisp
-(use-package package
-  :custom
-  (package-native-compile t)
-  (package-archives '(("gnu"   . "http://elpa.gnu.org/packages/")
-											("melpa" . "https://melpa.org/packages/")))
-	:config
-  (package-initialize))
-(use-package use-package
-  :custom
-  (use-package-vc-prefer-newest t))
-#+end_src
 ** COMMENT ement
 #+begin_src emacs-lisp
+(use-package wasabi
+	:ensure t)
+(use-package elcord
+	:ensure t)
 (use-package ement
-	:vc (:url "https://github.com/alphapapa/ement.el.git")
-	:after llama)
-#+end_src
-** COMMENT auto-completion
-vertico doesn't delete entire dir-word when backspace
-marginalia is buggy with fido-vertical-mode
-thinking about replacing corfu with (icomplete in buffer t)
-cape with hippie expand functions or something like that
-#+begin_src emacs-lisp
-(use-package emacs
-	:custom
-	(text-mode-ispell-word-completion nil))
-(use-package vertico
-  :vc (:url "https://github.com/minad/vertico")
-	:custom
-  (vertico-scroll-margin 0)
-  (vertico-count 20)
-  (vertico-resize t)
-  (vertico-cycle t)
-  :init
-  (vertico-mode))
-(use-package marginalia
-  :vc (:url "https://github.com/minad/marginalia")
-	:after vertico
-  :init
-  (marginalia-mode))
-(use-package corfu
-  :vc (:url "https://github.com/minad/corfu")
-	:custom
-  (corfu-auto t)
-  (corfu-cycle t)
-  (corfu-quit-at-boundary nil)
-  (corfu-quit-no-match nil)
-  (corfu-preview-current nil)
-  (corfu-preselect 'prompt)
-  (corfu-on-exact-match 'insert)
-  :hook
-	((prog-mode . corfu-mode)
-	 (shell-mode . corfu-mode)
-	 (eshell-mode . corfu-mode)))
-(use-package cape
-  :vc (:url "https://github.com/minad/cape")
-	:init
-  (add-hook 'completion-at-point-functions #'cape-history)
-  (add-hook 'completion-at-point-functions #'cape-emoji)
-  (add-hook 'completion-at-point-functions #'cape-dict)
-  (add-hook 'completion-at-point-functions #'cape-abbrev)
-  (add-hook 'completion-at-point-functions #'cape-dabbrev)
-  (add-hook 'completion-at-point-functions #'cape-file)
-  (add-hook 'completion-at-point-functions #'cape-keyword)
-  (add-hook 'completion-at-point-functions #'cape-elisp-block)
-  (add-hook 'completion-at-point-functions #'cape-elisp-symbol))
+	:ensure t)
 #+end_src

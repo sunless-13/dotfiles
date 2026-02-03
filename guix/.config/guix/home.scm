@@ -20,6 +20,7 @@
 		 "dbus"
 		 "openssh"
 		 "adb"
+		 "gnupg"
 		 "brightnessctl"
 		 "unzip"
      "glibc-locales"
@@ -33,6 +34,7 @@
 		 "fontconfig"
 		 "groff"
 		 "xpdf"
+		 "batsignal"
 		 "font-google-noto-sans-cjk"
 		 "font-google-noto-emoji"
 		 "font-dejavu"
@@ -67,7 +69,7 @@
 		 "emacs-geiser-guile"
 		 "emacs-pdf-tools"
 		 "emacs-eat"
-		 "emacs-org-modern"
+		 ;; "emacs-org-modern"
 		 "emacs-org-drill"
 		 "emacs-pulsar"
 		 ;; apps
@@ -80,13 +82,10 @@
 		 "emacs-ledger-mode"
 		 "emacs-ement"
 		 ;; dev
-		 "emacs-corfu"
-		 "emacs-cape"
-		 "emacs-dockerfile-mode"
-		 "emacs-yaml-mode"
-		 "emacs-rustic"
-		 "emacs-envrc"
-		 "emacs-lorem-ipsum"		 
+		 "rust"
+		 "rust:cargo"
+		 "rust:rust-src"
+		 "rust:tools"		 		 
 		 )))
 	;; add dotfiles
 	(services
@@ -97,7 +96,7 @@
 		 (service home-openssh-service-type)
 		 (service home-gpg-agent-service-type)
 		 (service home-niri-service-type)
-		 ;; (service home-batsignal-service-type)
+		 (service home-batsignal-service-type)
 		 (service home-bash-service-type
 				(home-bash-configuration
 					(aliases
