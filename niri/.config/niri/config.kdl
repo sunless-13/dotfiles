@@ -69,13 +69,11 @@ window-rule {
 }
 spawn-sh-at-startup "mako"
 spawn-sh-at-startup "swaybg -i ~/stash/pics/ecl.jpg"
-spawn-sh-at-startup "emacs --daemon"
 binds {
-		Mod+Return { spawn-sh "emacsclient --create-frame --eval '(global-org-modern-mode)'"; }
-		Mod+E { spawn-sh "emacs"; }
+		Mod+Return { spawn "emacs"; }
+		Mod+P { spawn-sh "rust-emacs"; }
 		Mod+O { spawn-sh "emacs --eval '(org-agenda-list)'"; }
 		Mod+Shift+Return { spawn "icecat"; }
-		Mod+P { spawn "chromium"; }
 
 		XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+"; }
 		XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-"; }

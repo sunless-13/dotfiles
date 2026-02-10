@@ -10,3 +10,7 @@ shopt -s autocd cdspell dirspell
 
 # direnv
 # eval "$(direnv hook bash)"
+
+# gnu privacy guard
+# GPG_TTY=$(tty)
+# export GPG_TTY=$(tty)
