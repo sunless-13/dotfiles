@@ -1,78 +1,73 @@
 (use-modules (gnu)
-						 (nongnu packages linux)
-						 (nongnu system linux-initrd)
-)
-(use-service-modules desktop admin xorg containers)
-(use-modules (gnu system accounts))
-
-(define %my-desktop-services
-	(modify-services %desktop-services
-									 (delete gdm-service-type)))
+             (gnu packages android)
+             (gnu system accounts))
+(use-service-modules networking desktop containers)
 
 ;; main config
 (operating-system
-	;; wifi
-	(kernel linux)
-	(initrd microcode-initrd)
-	(firmware (cons* iwlwifi-firmware
-									 %base-firmware))
+    ;; personal
+    (host-name "sunless")
+    (timezone "Africa/Nairobi")
+    (locale "en_US.utf8")
+    (keyboard-layout (keyboard-layout "us"))
 
-	;; personal
-	(host-name "sunless")
-	(timezone "Africa/Nairobi")
-	(locale "en_US.utf8")
-	(keyboard-layout (keyboard-layout "us"))
+    ;; grub
+    (bootloader
+     (bootloader-configuration
+      (bootloader grub-efi-bootloader)
+      (targets '("/boot/efi"))
+      (timeout "0")))
 
-	;; grub
-	(bootloader
-	 (bootloader-configuration
-		(bootloader grub-efi-bootloader)
-		(targets '("/boot/efi"))
-		(timeout "0")))
+    ;; file system
+    (file-systems
+     (append
+      (list
+       (file-system
+        (device "/dev/sda1")
+        (mount-point "/boot/efi")
+        (type "vfat"))
+       (file-system
+        (device "/dev/sda2")
+        (mount-point "/")
+        (type "ext4"))
+       (file-system
+        (device "/dev/sda3")
+        (mount-point "/home")
+        (type "ext4")))
+      %base-file-systems))
 
-	;; file system
-	(file-systems
-	 (append
-		(list
-		 (file-system
-				(device "/dev/sda1")
-				(mount-point "/boot/efi")
-				(type "vfat"))
-		 (file-system
-				(device "/dev/sda2")
-				(mount-point "/")
-				(type "ext4"))
-		 (file-system
-				(device "/dev/sda3")
-				(mount-point "/home")
-				(type "ext4"))) %base-file-systems))
+    ;; users
+    (users
+     (cons
+      (user-account
+       (name "sunless")
+       (group "users")
+       (supplementary-groups
+        '("wheel" "audio" "video" "adbusers" "cgroup" "input")))
+      %base-user-accounts))
 
-	;; users
-	(users
-	 (cons
-		(user-account
-		 (name "sunless")
-		 (group "users")
-		 (supplementary-groups '("wheel" "audio" "video"
-														 "netdev" "cgroup" "input")))	%base-user-accounts))
+    ;; packages
+    (packages %base-packages)
 
-	;; packages
-	(packages %base-packages)
-	;; services
-	(services
-	 (append
-		(list
-		 (service bluetooth-service-type)
-		 ;; (service iptables-service-type)
-		 (service rootless-podman-service-type
-							(rootless-podman-configuration
-							 (subgids
-								(list (subid-range (name "sunless"))))
-							 (subuids
-								(list (subid-range (name "sunless")))))
-							)
-		 )
-		%my-desktop-services))
-
-	;; Allow resolution of '.local' host names with mDNS.
-	(name-service-switch %mdns-host-lookup-nss))
+    ;; services
+    (services
+     (append
+      (list
+       (service dhcpcd-service-type)
+       (service ntp-service-type)
+       ;; (service iptables-service-type)
+       (service sane-service-type)
+       (service elogind-service-type)
+       (service rootless-podman-service-type
+                (rootless-podman-configuration
+                 (subgids
+                  (list (subid-range (name "sunless"))))
+                 (subuids
+                  (list (subid-range (name "sunless")))))
+                )
+       (udev-rules-service 'android android-udev-rules
+                           #:groups '("adbusers"))
+       )%base-services))
+    
+    ;; Allow resolution of '.local' host names with mDNS.
+    (name-service-switch %mdns-host-lookup-nss))

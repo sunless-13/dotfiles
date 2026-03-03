@@ -1,501 +1,503 @@
-#+TITLE: my config
 #+PROPERTY: header-args :tangle "~/.config/emacs/init.el"
 #+CATEGORY: emacs
 * essentials
+noice stuff
 ** early-init
-prevent flash bang
 #+begin_src emacs-lisp :tangle "~/.config/emacs/early-init.el"
+;; -*- lexical-binding: t; -*-
 (use-package emacs
-    :init
-    (setq mode-line-format nil)
-    (set-face-attribute 'default nil :background "#000000" :foreground "#ffffff")
-    (set-face-attribute 'mode-line nil :background "#000000" :foreground "#ffffff" :box 'unspecified))
+  :init
+  ;; suppress
+  (setq initial-startup-screen nil)
+  (setq initial-scratch-message nil)
+  (setq inhibit-startup-message t)
+  ;; disable display of stuffs
+  (setq tool-bar-mode nil)
+  (setq tooltip-mode nil)
+  (setq menu-bar-mode nil)
+  (setq scroll-bar-mode nil)
+  (setq fringe-mode nil)
+  (setq use-dialog-box nil)
+  (setq initial-major-mode 'fundamental-mode)
+  (setq initial-startup-screen nil)
+  (setq initial-scratch-message nil)
+  (setq inhibit-splash-screen t)
+  (setq mode-line-format nil)
+  ;; stop flashbang
+  (set-face-attribute 'default nil :background "#000000" :foreground "#ffffff")
+  (set-face-attribute 'mode-line nil :background "#000000" :foreground "#ffffff" :box nil))
 #+end_src
 ** minimal
 #+begin_src emacs-lisp
+;; -*- lexical-binding: t; -*-
 (use-package emacs
-    :custom
-    (tool-bar-mode nil)
-    (tooltip-mode nil)
-    (menu-bar-mode nil)
-    (scroll-bar-mode nil)
-    (blink-cursor-mode nil)
-    (cursor-type 'hbar)
-    (use-dialog-box nil)
-    (initial-startup-screen nil)
-    (initial-scratch-message nil)
-    (inhibit-startup-message t)
-    (ring-bell-function 'ignore)
-    (fringe-mode 0)
-    (use-short-answers t)
-    (sentence-end-double-space nil)
-    (text-mode-ispell-word-completion nil) ;; fix dictionary
-    (make-backup-files nil)
-    (create-lockfiles nil))
+  :custom
+  (menu-bar-mode nil)
+  (scroll-bar-mode nil)
+  (blink-cursor-mode nil)
+  (cursor-type 'hbar)
+  (ring-bell-function 'ignore)
+  (use-short-answers t)
+  (sentence-end-double-space nil)
+  ;; (text-mode-ispell-word-completion nil) ;; fix dictionary
+  (make-backup-files nil)
+  (create-lockfiles nil))
 #+end_src
 ** quality of life
 #+begin_src emacs-lisp
 (use-package emacs
-    :custom
-    ;; (auto-save-no-message t)
-    ;; (auto-save-interval 100) ;; save after 100 characters
-    ;; (auto-save-timeout 20) ;; save after 20s of idle
-    (auto-save-default nil)
-    (visible-bell t)
-    (tab-width 2)
-    (global-visual-line-mode t)
-    (delete-selection-mode t)
-    (scroll-conservatively 101)
-    (gc-cons-threshold (* 50 1024 1024))
-    :config
-    (load-theme 'modus-vivendi-tritanopia)
-    (set-face-attribute 'default nil
-    :height 90
-    :weight 'normal
-    :family "DejaVu Sans Mono")
-    ;; transparency
-    (set-frame-parameter nil 'alpha-background 90)
-    (add-to-list 'default-frame-alist '(alpha-background . 90))
-    ;; custom function for deleting other buffers
-    (defun KILL-ALL-other-buffers ()
+  :custom
+  (initial-major-mode 'org-mode)
+  (auto-save-default nil)
+  (visible-bell t)
+  (indent-tabs-mode nil)
+  (tab-width 2)
+  (global-font-lock-mode 0) ;; terminal colors visibility
+  (global-visual-line-mode t)
+  (delete-selection-mode t)
+  (scroll-conservatively 101)
+  (gc-cons-threshold (* 50 1024 1024))
+  :config
+  ;; installed in guix system wide
+  (set-face-attribute 'default nil
+		      :height 90
+		      :weight 'normal
+		      :family "DejaVu Sans Mono")
+  ;; transparency
+  (set-frame-parameter nil 'alpha-background 90)
+  (add-to-list 'default-frame-alist '(alpha-background . 90))
+  ;; custom function for deleting other buffers
+  (defun KILL-ALL-other-buffers ()
     "Kill all other buffers."
     (interactive)
-    (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
-    :bind
-    (("C-x k" . kill-current-buffer)
-    ("C-x K" . kill-buffer-and-window)
-    ("C-c k" . KILL-ALL-other-buffers)
-    ([escape] . keyboard-escape-quit) ;; Makes Escape quit prompts (Minibuffer Escape)
-    ;; Zooming In/Out
-    ("C-+" . text-scale-increase)
-    ("C--" . text-scale-decrease)
-    ("<C-wheel-up>" . text-scale-increase)
-    ("<C-wheel-down>" . text-scale-decrease)
-    ("C-c e" . emoji-insert)
-    ("C-x ;" . comment-line))
-    :hook
-    (emacs-startup-hook . (lambda ()
-    (message "Loaded in %.2fs"
-    (float-time (time-subtract after-init-time before-init-time))
-    gcs-done))))
-;; usefull right click
-(use-package emacs
-    :if (display-graphic-p)
-    :init
-    (context-menu-mode))
+     (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
+  :bind
+  (("C-x k" . kill-current-buffer)
+   ("C-x K" . kill-buffer-and-window)
+   ("C-c k" . KILL-ALL-other-buffers)
+   ("C-+" . text-scale-increase)
+   ("C--" . text-scale-decrease)
+   ("C-c e" . emoji-insert)
+   ("C-x ;" . comment-line))
+  :hook
+  (emacs-startup-hook . (lambda ()
+                          (message "Loaded in %.2fs"
+                                   (float-time (time-subtract after-init-time before-init-time))
+                                  gcs-done)))
+  )
 ;; select help
 (use-package help
-    :custom
-    (help-window-select t))
+  :custom
+  (help-window-select t))
 #+end_src
-** windows
+** theme
+noice ai generated solution
 #+begin_src emacs-lisp
-(use-package window
-    :custom
-    (display-buffer-alist
-    '(("\\*Help\\*"
-    (display-buffer-reuse-window display-buffer-same-window))
-    ("\\*Apropos\\*"
-    (display-buffer-same-window))
-    ("\\*Org Agenda\\*"
-    (display-buffer-same-window))
-    ("\\*vc-dir\\*"
-    (display-buffer-same-window))
-    ("\\*vc-log\\*"
-    (display-buffer-same-window))
-    ("\\*Agenda Commands\\*"
-    (display-buffer-below-selected))
-    ("\\*Org todo\\*"
-    (display-buffer-below-selected)
-    (window-height . 0.1))
-    ("\\*Org Select\\*"
-    (display-buffer-below-selected))
-    ("\\*Org Src*?\\*"
-    (display-buffer-below-selected))
-    ("\\Async Shell Command\\*"
-    (display-buffer-no-window))
-    ("\\*Proced\\*"
-    (display-buffer-full-frame))
-    ("\\**eshell\\*"
-    (display-buffer-below-selected)
-    (window-height . 0.3))
-    ))
-    )
+(use-package modus-themes
+  :preface
+  (require-theme 'modus-themes) ; Forces the built-in library to load
+  :custom
+  (modus-themes-common-palette-overrides
+        '(;; Make the fringe match the main background
+          (fringe bg-main)
+          ;; Make the active mode-line background match the main background
+          ;; and its text match the main foreground
+          (fg-mode-line-active fg-main)
+          (bg-mode-line-active bg-main)
+          (fg-mode-line-inactive fg-main)
+          (bg-mode-line-inactive bg-main)
+          ;; Optional: Remove the border around the mode-line for a "flat" look
+          (border-mode-line-active bg-main)
+          (border-mode-line-inactive bg-main)
+          ))
+  :config
+  (load-theme 'modus-vivendi-tritanopia))
 #+end_src
 ** modeline
 *** battery
 #+begin_src emacs-lisp
 (use-package battery
-    :bind ("C-c b" . battery)
-    :custom
-    (display-battery-mode t)
-    (battery-mode-line-format "[%p%% %L %mm]"))
+  :bind ("C-c b" . battery)
+  :custom
+  (display-battery-mode t)
+  ;; (battery-mode-line-format "[%p%%]")
+  )
 #+end_src
 *** time
 #+begin_src emacs-lisp
 (use-package time
-    :custom
-    (display-time-mode t)
-    (display-time-default-load-average nil)
-    (display-time-format "%H:%M %a %d %b"))
+  :custom
+  (display-time-mode t)
+  (display-time-default-load-average nil)
+  (display-time-format "%H:%M %a %d %b"))
 #+end_src
 *** format
 fix the repetitive (preferrable disable modeline when window not selected)
 #+begin_src emacs-lisp
 (use-package emacs
-    :custom
-    (mode-line-position-line-format '("%l"))
-    (mode-line-percent-position '("%o"))
-    ;; misc info variables changing
-    (global-mode-string
-    '("" org-mode-line-string
-    display-time-string
-    battery-mode-line-string))
-    (mode-line-format
-    '(
-    (:eval
-    (when (mode-line-window-selected-p)
-    "%b"
-    ))
-    " "
-    (:eval
-    (when (mode-line-window-selected-p)
-    mode-line-position-line-format
-    ))
-    " "
-    (:eval
-    (when (mode-line-window-selected-p)
-    mode-line-percent-position
-    ))
-    (:eval
-    (when (mode-line-window-selected-p)
-    project-mode-line-format
-    ))
-    " "
-    (:eval
-    (when (mode-line-window-selected-p)
-    vc-mode
-    ))
-    ;; right side
-    mode-line-format-right-align
-    (:eval
-    (when (mode-line-window-selected-p)
-    mode-line-misc-info
-    ))
-    )
-    )
-    )
+  :custom
+  (mode-line-position-line-format '("%l"))
+  (mode-line-percent-position '("%o"))
+  ;; misc info variables changing
+  (global-mode-string
+   '(""
+     org-mode-line-string
+     display-time-string
+     battery-mode-line-string))
+  (mode-line-format
+   '(
+     (:eval
+      (when (mode-line-window-selected-p)
+        "%b"
+        ))
+     " "
+     (:eval
+      (when (mode-line-window-selected-p)
+        mode-line-position
+        ))
+     " "
+     (:eval
+      (when (mode-line-window-selected-p)
+        project-mode-line-format
+        ))
+     " "
+     (:eval
+      (when (mode-line-window-selected-p)
+        vc-mode
+        ))
+     ;; right side
+     mode-line-format-right-align
+     (:eval
+      (when (mode-line-window-selected-p)
+        mode-line-misc-info
+        ))
+     )
+   )
+  )
+#+end_src
+** windows
+#+begin_src emacs-lisp
+(use-package window
+  :custom
+  (display-buffer-alist
+   '(("\\*Help\\*"
+      (display-buffer-reuse-window display-buffer-same-window))
+     ("\\*Apropos\\*"
+      (display-buffer-same-window))
+     ("\\*vc-dir\\*"
+      (display-buffer-same-window))
+     ("\\*vc-log\\*"
+      (display-buffer-same-window))
+     ("\\*Agenda Commands\\*"
+      (display-buffer-below-selected))
+     ("\\*Org todo\\*"
+      (display-buffer-below-selected)
+      (window-height . 0.1))
+     ("\\*Org Select\\*"
+      (display-buffer-below-selected))
+     ("\\Async Shell Command\\*"
+      (display-buffer-no-window))
+     ("\\*Completions\\*"
+      (display-buffer-no-window))
+     ("\\*Proced\\*"
+      (display-buffer-full-frame))
+     ;; ("\\**eshell\\*"
+     ;;  (display-buffer-below-selected)
+     ;;  (window-height . 0.3))
+     ))
+  )
 #+end_src
 * dired
 ** basic
 why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:use-package#Hooks][use-package#Hooks]])
 #+begin_src emacs-lisp
 (use-package dired
-    :hook
-    ((dired-mode . hl-line-mode)
-    (dired-mode . guix-prettify-mode)
-    (dired-mode . dired-hide-details-mode))
-    :custom
-    (dired-listing-switches "-Alh --group-directories-first")
-    (dired-hide-details-hide-symlink-targets nil)
-    (dired-kill-when-opening-new-dired-buffer t)
-    (dired-recursive-copies 'always)
-    (dired-recursive-deletes 'always)
-    (dired-dwim-target t)
-    (dired-guess-shell-alist-user
-    '(("\\.\\(mp[34]\\|m4a\\|ogg\\|flac\\|webm\\|mkv\\)" "mpv")
-    ("\\.html?\\'" "icecat")
-    (".*" "xdg-open"))))
+  :hook
+  ((dired-mode . hl-line-mode)
+   (dired-mode . guix-prettify-mode)
+   (dired-mode . dired-hide-details-mode))
+  :custom
+  (dired-listing-switches "-Alh --group-directories-first")
+  (dired-hide-details-hide-symlink-targets nil)
+  (dired-kill-when-opening-new-dired-buffer t)
+  (dired-recursive-copies 'always)
+  (dired-recursive-deletes 'always)
+  (dired-dwim-target t)
+  (dired-guess-shell-alist-user
+   '(("\\.\\(mp[34]\\|m4a\\|ogg\\|flac\\|webm\\|mkv\\)" "mpv")
+     ("\\.html?\\'" "icecat")
+     (".*" "xdg-open"))))
 #+end_src
 ** wdired
 #+begin_src emacs-lisp
 (use-package wdired
-    :custom
-    (wdired-allow-to-change-permissions t))
+  :custom
+  (wdired-allow-to-change-permissions t))
 #+end_src
 * org
 ** quality of life
 #+begin_src emacs-lisp
 (use-package org
-    :custom
-    (org-return-follows-link t)
-    (org-startup-folded 'content)
-    (org-hide-emphasis-markers t)
-    (org-pretty-entities t)
-    (org-ellipsis " ")
-    (org-hide-leading-stars t)
-    (org-use-speed-commands t)
-    ;; block templates
-    (org-structure-template-alist
-    '(("s" . "src")
-    ("b" . "src bash")
-    ("l" . "src scheme")
-    ("e" . "src emacs-lisp")
-    ("r" . "src rust")))
-    (org-todo-keywords
-    '((sequence "TODO(t)" "ONLINE(o)" "NIGHT(n)" "|" "DONE(d)")))
-    (org-tag-alist
-    '(;; location
-    (:startgroup)
-    ("darkness" . ?d)
-    ("light" . ?l)
-    ("scholar" . ?s)
-    (:endgroup)
-    (:newline)
-    ;; scale
-    (:startgroup)
-    ("insanity" . ?i)
-    ("challenge" . ?c)
-    ("ez" . ?e)
-    (:endgroup)
-    ;; misc
-    ("urgent")
-    ("tinker")
-    ("read")
-    (:newline)
-    ("horizon")
-    ("automation")
-    ("tutorial")
-    (:newline)
-    ("docs")
-    ("question")
-    ("plan")))
-    :bind
-    ("C-c l" . org-store-link))
+  :custom
+  (org-return-follows-link t)
+  (org-startup-folded 'content)
+  (org-hide-emphasis-markers t)
+  (org-pretty-entities t)
+  (org-ellipsis " ")
+  ;; (org-hide-leading-stars t)
+  (org-use-speed-commands t)
+  (org-use-sub-superscripts nil)
+  ;; block templates
+  (org-structure-template-alist
+   '(("s" . "src")
+     ("b" . "src bash")
+     ("l" . "src scheme")
+     ("e" . "src emacs-lisp")
+     ("r" . "src rust")))
+  (org-todo-keywords
+   '((sequence "TODO(t)" "ONLINE(o)" "NIGHT(n)" "|" "DONE(d)")))
+  (org-tag-alist
+   '(;; location
+     (:startgroup)
+     ("darkness" . ?d)
+     ("light" . ?l)
+     ("scholar" . ?s)
+     (:endgroup)
+     (:newline)
+     ;; scale
+     (:startgroup)
+     ("insanity" . ?i)
+     ("challenge" . ?c)
+     ("ez" . ?e)
+     (:endgroup)
+     ;; misc
+     ("urgent")
+     ("tinker")
+     ("read")
+     (:newline)
+     ("horizon")
+     ("automation")
+     ("tutorial")
+     (:newline)
+     ("docs")
+     ("question")
+     ("plan")))
+  :bind
+  ("C-c l" . org-store-link))
 (use-package org-src
-    :after org
-    :custom
-    (org-edit-src-content-indentation 0))
+  :after org
+  :custom
+  (org-src-window-setup 'current-window)
+  (org-edit-src-content-indentation 0))
 #+end_src
 ** org agenda
 #+begin_src emacs-lisp
 (use-package org
-    :custom
-    (org-deadline-warning-days 2)
-    ;; todo's and schedules may appear on the agenda
-    (org-agenda-files
-    '("~/alchemy/insanity"
-    "~/alchemy/insanity/emo"
-    "~/alchemy/insanity/emo/mortal"
-    "~/alchemy/insanity/emo/soul"
-    "~/alchemy/insanity/int"
-    "~/alchemy/insanity/scholar"
-    "~/alchemy/insanity/rad"
-    "~/alchemy/insanity/tech"
-    "~/alchemy/insanity/tech/os"
-    "~/alchemy/insanity/tech/web"
-    "~/alchemy/insanity/kifa"
-    "~/alchemy/dotfiles/emacs/.config/emacs/README.org")))
+  :custom
+  (org-deadline-warning-days 2)
+  ;; todo's and schedules may appear on the agenda
+  (org-agenda-files
+   '("~/alchemy/insanity"
+     "~/alchemy/insanity/emo"
+     "~/alchemy/insanity/int"
+     "~/alchemy/insanity/scholar"
+     "~/alchemy/insanity/rad"
+     "~/alchemy/insanity/tech"
+     "~/alchemy/insanity/tech/os"
+     "~/alchemy/insanity/tech/rust"
+     "~/alchemy/dotfiles/emacs/.config/emacs/README.org")))
 (use-package org-agenda
-    :after org
-    :bind
-    (("C-c a" . org-agenda)
-    ("C-c c" . org-capture))
-    :custom
-    (org-agenda-custom-commands
-    '(
-    ("n" "Agenda and all TODOs"
-    ((agenda ""
-    ((org-agenda-start-on-weekday nil)))
-    (alltodo "")
-    ))
-    ("d" "Daily"
-    ((agenda ""
-    ((org-agenda-span 'day)
-    (org-agenda-overriding-header "Today")
-    ))
-    ))
-    ("w" "Weekly"
-    ((agenda ""
-    ((org-agenda-span 'week)
-    (org-agenda-overriding-header "Week")
-    (org-agenda-start-on-weekday nil)
-    )
-    ))
-    )
-    ))
-    )
+  :after org
+  :bind
+  (("C-c a" . org-agenda)
+   ("C-c c" . org-capture))
+  :custom
+  (org-agenda-window-setup 'current-window)
+  (org-agenda-custom-commands
+   '(
+     ("n" "Agenda and all TODOs"
+      ((agenda ""
+               ((org-agenda-start-on-weekday nil)))
+       (alltodo "")
+       ))
+     ("d" "Daily"
+      ((agenda ""
+               ((org-agenda-span 'day)
+                (org-agenda-overriding-header "Today")
+                ))
+       ))
+     ("w" "Weekly"
+      ((agenda ""
+               ((org-agenda-span 'week)
+                (org-agenda-overriding-header "Week")
+                (org-agenda-start-on-weekday nil)
+                )
+               ))
+      )
+     ))
+  )
 #+end_src
 ** org capture
 #+begin_src emacs-lisp
 (use-package org
-    :custom
-    (org-capture-templates
-    '(("c" "Chaos" plain (file "~/alchemy/insanity/chaos.org")
-    "%?")
-    ("j" "Journal" plain (file+datetree "~/alchemy/insanity/emo/soul/journal.org")
-    "%?")
-    ))
-    ;; bookmarks fix to stop capturing =org capture=
-    (org-bookmark-names-plist nil))
+  :custom
+  (org-capture-templates
+   '(("c" "Chaos" plain (file "~/alchemy/insanity/chaos.org")
+      "%?")
+     ("j" "Journal" plain (file+datetree "~/alchemy/insanity/emo/soul/journal.org")
+      "%?")
+     ))
+  ;; bookmarks fix to stop capturing =org capture=
+  (org-bookmark-names-plist nil))
 #+end_src
 ** org clock
 #+begin_src emacs-lisp
 (use-package org
-    :custom
-    (org-log-done 'time)
-    (org-log-into-drawer t))
+  :custom
+  (org-log-done 'time)
+  (org-log-into-drawer t))
 (use-package org-clock
-    :custom
-    (org-clock-sound t)
-    (org-show-notification-timeout 10))
+  :custom
+  (org-clock-sound t)
+  (org-show-notification-timeout 10))
 #+end_src
 ** org habit
 enable this org module to start working with habits
 #+begin_src emacs-lisp
 (use-package org-habit
-    :after org)
+  :after org)
 (use-package org-agenda
-    :after org
-    :custom
-    (org-agenda-diary-file "~/alchemy/insanity/emo/soul/habits.org"))
+  :after org
+  :custom
+  (org-agenda-diary-file "~/alchemy/insanity/emo/soul/habits.org"))
 #+end_src
 ** org modern
 love the =src= blocks and =bullets=
 disable in tty
 #+begin_src emacs-lisp
 (use-package org-modern
-    :if (display-graphic-p)
-    :custom
-    (org-modern-tag nil)
-    (org-modern-todo nil)
-    (global-org-modern-mode t))
+  :if (display-graphic-p)
+  :custom
+  (org-modern-tag nil)
+  (org-modern-todo nil)
+  (global-org-modern-mode t))
 #+end_src
 * packages
 ** melpa
 i'm using guix so i don't need to download packages normally
 #+begin_src emacs-lisp
 (use-package package
-    :custom
-    (package-native-compile t)
-    (package-archives '(("gnu"   . "http://elpa.gnu.org/packages/")
-    ("nongnu" . "https://elpa.nongnu.org/nongnu/")
-    ("melpa" . "https://melpa.org/packages/")))
-    :config
-    (package-initialize))
+  :custom
+  (package-native-compile t)
+  (package-archives '(("gnu"   . "http://elpa.gnu.org/packages/")
+                      ("nongnu" . "https://elpa.nongnu.org/nongnu/")
+                      ("melpa" . "https://melpa.org/packages/")))
+  :config
+  (package-initialize))
 #+end_src
-** libraries
+** inbuilt
 *** prog mode
 #+begin_src emacs-lisp
 (use-package prog-mode
-    :custom
-    (global-prettify-symbols-mode t))
+  :custom
+  (global-prettify-symbols-mode t))
 #+end_src
 *** elec-pair
 #+begin_src emacs-lisp
 (use-package elec-pair
-    :custom
-    (electric-pair-mode t))
+  :custom
+  (electric-pair-mode t))
 #+end_src
 *** autorevert
 #+begin_src emacs-lisp
 (use-package autorevert
-    :custom
-    (auto-revert-interval 1)
-    (global-auto-revert-non-file-buffers t)
-    (auto-revert-verbose nil)
-    (global-auto-revert-mode t))
+  :custom
+  (auto-revert-interval 1)
+  (global-auto-revert-non-file-buffers t)
+  (auto-revert-verbose nil)
+  (global-auto-revert-mode t))
 #+end_src
 *** windmove
 #+begin_src emacs-lisp
 (use-package windmove
-    :config
-    (windmove-default-keybindings 'meta))
-#+end_src
-*** whitespace
-add white-space clean up to before-save-hook
-#+begin_src emacs-lisp
-(use-package whitespace
-    :hook (before-save . whitespace-cleanup))
+  :config
+  (windmove-default-keybindings 'meta))
 #+end_src
 *** auth source
 #+begin_src emacs-lisp
 (use-package auth-source
-    :custom
-    (auth-sources '("~/.authinfo.gpg")))
+  :custom
+  (auth-sources '("~/.authinfo.gpg")))
 (use-package pinentry)
 (use-package epg-config
-    :custom
-    (epg-pinentry-mode 'loopback))
+  :custom
+  (epg-pinentry-mode 'loopback))
 #+end_src
 *** which key
 #+begin_src emacs-lisp
 (use-package which-key
-    :custom
-    (which-key-mode t))
+  :custom
+  (which-key-mode t))
 #+end_src
 *** proced
 #+begin_src emacs-lisp
 (use-package proced
-    :hook
-    (proced-mode . guix-prettify-mode)
-    :custom
-    (proced-auto-update-flag t)
-    (proced-auto-update-interval 1)
-    (proced-descent t)
-    (proced-filter 'user)
-    (proced-enable-color-flag t))
+  :hook
+  (proced-mode . guix-prettify-mode)
+  :custom
+  (proced-auto-update-flag t)
+  (proced-auto-update-interval 1)
+  (proced-descent t)
+  (proced-filter 'user)
+  (proced-enable-color-flag t))
 #+end_src
 *** save hist
 #+begin_src emacs-lisp
 (use-package savehist
-    :custom
-    (history-length 50)
-    (history-delete-duplicates t)
-    :init
-    (savehist-mode))
+  :custom
+  (history-length 50)
+  (history-delete-duplicates t)
+  :init
+  (savehist-mode))
 #+end_src
 *** project
 =M-x project-forget-project= remove project
 #+begin_src emacs-lisp
 (use-package project
-    :custom
-    (project-mode-line t))
+  :custom
+  (project-mode-line t))
 #+end_src
 *** ibuffer
 #+begin_src emacs-lisp
 (use-package ibuffer
-    :bind ("C-x C-b" . ibuffer)
-    :hook
-    ((ibuffer-mode . hl-line-mode)
-    (ibuffer-mode . guix-prettify-mode)
-    (ibuffer-mode . (lambda ()
-    (ibuffer-switch-to-saved-filter-groups "home")
-    (ibuffer-auto-mode t)
-    )))
-    :custom
-    (ibuffer-display-summary nil)
-    (ibuffer-show-empty-filter-groups nil)
-    (ibuffer-saved-filter-groups
-    '(("home"
-    ("guix" (directory . "gixx"))
-    ("dotfiles" (directory . "dotfiles"))
-    ("insanity" (directory . "insanity"))
-    ("emacs" (or
-    (mode . emacs-lisp-mode)
-    (name . "^\\*Help\\*$")
-    (name . "^\\*Custom.*")
-    (name . "^\\*Org Agenda\\*$")
-    (name . "^\\*info\\*$")
-    (name . "^\\*scratch\\*$")
-    (name . "^\\*Backtrace\\*$")
-    (name . "^\\*Messages\\*$"))))))
-)
+  :bind ("C-x C-b" . ibuffer)
+  :hook
+  ((ibuffer-mode . hl-line-mode)
+   (ibuffer-mode . guix-prettify-mode)
+   (ibuffer-mode . (lambda ()
+                     (ibuffer-switch-to-saved-filter-groups "home")
+                     (ibuffer-auto-mode t)
+                     )))
+  :custom
+  (ibuffer-display-summary nil)
+  (ibuffer-show-empty-filter-groups nil)
+  (ibuffer-saved-filter-groups
+   '(("home"
+      ("guix" (directory . "gixx"))
+      ("dotfiles" (directory . "dotfiles"))
+      ("insanity" (directory . "insanity"))
+      ("emacs" (or
+                (mode . emacs-lisp-mode)
+                (name . "^\\*Help\\*$")
+                (name . "^\\*Custom.*")
+                (name . "^\\*Org Agenda\\*$")
+                (name . "^\\*info\\*$")
+                (name . "^\\*scratch\\*$")
+                (name . "^\\*Backtrace\\*$")
+                (name . "^\\*Messages\\*$"))))))
+  )
 #+end_src
-*** modus
-#+begin_src emacs-lisp
-(use-package modus-themes
-    :config
-    (modus-themes-with-colors
-    (set-face-attribute 'mode-line nil
-    :foreground fg-main
-    :background bg-main
-    :box nil)
-    (set-face-attribute 'mode-line-inactive nil
-    :foreground fg-main
-    :background bg-main
-    :box nil)))
-#+end_src
+
 *** eshell
 fix clear eshell buffer + clear-scrollback
 =emacs-load-hook= only works when creating the first Eshell-buffer
@@ -503,11 +505,11 @@ using =emacs-first-time-mode= fixes the problem when new eshell buffer is opened
 ensure =eat (emulate a terminal)= is installed (and other inferior terminals uninstalled)
 #+begin_src emacs-lisp
 (use-package eshell
-    :hook (eshell-load . eat-eshell-mode)
-    :custom
-    (eshell-banner-message "")
-    :bind
-    ("C-c s" . eshell))
+  :hook (eshell-load . eat-eshell-mode)
+  :custom
+  (eshell-banner-message "")
+  :bind
+  ("C-c s" . eshell))
 (use-package eat)
 #+end_src
 *** gnus
@@ -515,203 +517,236 @@ test sending and receiving email
 use as rss reader
 #+begin_src emacs-lisp
 (use-package gnus
-    :hook
-    (gnus-group-mode-hook . gnus-topic-mode)
-    :custom
-    ;; personal info
-    (user-full-name "Sunless")
-    (user-mail-address "sunlesskelv@gmail.com")
-    (gnus-select-method '(nnnil ""))
-    ;; main news
-    (gnus-secondary-select-methods '((nnimap "gmail"
-    (nnimap-address "imap.gmail.com")
-    (nnimap-server-port "imaps")
-    (nnimap-stream ssl))))
-    (gnus-directory "~/.config/emacs/news")
-    (message-directory "~/.config/emacs/mail")
-    (nnfolder-directory "~/.config/emacs/mail/archive")
-    ;; random
-    (gnus-interactive-exit nil)
-    (gnus-asynchronous t)
-    ;; sending mail
-    (message-send-mail-function 'smtpmail-send-it)
-    (smtpmail-default-smtp-server "smtp.gmail.com"))
+  :hook
+  (gnus-group-mode-hook . gnus-topic-mode)
+  :custom
+  ;; personal info
+  (user-full-name "Sunless")
+  (user-mail-address "sunlesskelv@gmail.com")
+  (gnus-select-method '(nnnil ""))
+  ;; main news
+  (gnus-secondary-select-methods '((nnimap "gmail"
+                                           (nnimap-address "imap.gmail.com")
+                                           (nnimap-server-port "imaps")
+                                           (nnimap-stream ssl))))
+  (gnus-directory "~/.config/emacs/news")
+  (message-directory "~/.config/emacs/mail")
+  (nnfolder-directory "~/.config/emacs/mail/archive")
+  ;; random
+  (gnus-interactive-exit nil)
+  (gnus-asynchronous t)
+  ;; sending mail
+  (message-send-mail-function 'smtpmail-send-it)
+  (smtpmail-default-smtp-server "smtp.gmail.com"))
 #+end_src
 *** irc
 ai generated solution for column fill
 #+begin_src emacs-lisp
 (use-package rcirc
-    :hook
-    ((rcirc-mode . flyspell-mode)
-    (rcirc-mode . rcirc-omit-mode)
-    ;; (rcirc-mode . (lambda ()
-    ;; (setq-local fill-column (- (window-width) 1)))))
-    )
-    :custom
-    (rcirc-server-alist
-    '(("irc.libera.chat"
-    :nick "sunless"
-    :channels ("#emacs")
-    :port 6697
-    :encryption tls)))
-    (rcirc-default-full-name "Darkness blinds as the Light")
-    (rcirc-cycle-completion-flag t)
-    (rcirc-track-minor-mode t)
-    (rcirc-fill-column 'frame-text-width)
-    (rcirc-omit-responses '("JOIN" "PART" "QUIT" "NICK" "AWAY"))
-    (rcirc-omit-unless-requested '("TOPIC" "NAMES"))
-    :config
-    (setq rcirc-authinfo
-    `(("Libera.Chat" nickserv "sunless" ,(auth-source-pick-first-password :host "irc")))))
+  :bind
+  ("C-c i" . irc)
+  :hook
+  ((rcirc-mode . flyspell-mode)
+   (rcirc-mode . rcirc-omit-mode))
+  :custom
+  (rcirc-server-alist
+   '(("irc.libera.chat"
+      :nick "sunless"
+      :channels ("#emacs")
+      :port 6697
+      :encryption tls)))
+  (rcirc-default-full-name "Darkness blinds as the Light")
+  (rcirc-cycle-completion-flag t)
+  (rcirc-track-minor-mode t)
+  (rcirc-fill-column 'frame-text-width)
+  (rcirc-omit-responses '("JOIN" "PART" "QUIT" "NICK" "AWAY"))
+  (rcirc-omit-unless-requested '("TOPIC" "NAMES"))
+  :config
+  (setq rcirc-authinfo
+        `(("Libera.Chat" nickserv "sunless" ,(auth-source-pick-first-password :host "irc"))))
+  )
+#+end_src
+*** flyspell
+fix why i'm getting error
+#+begin_src emacs-lisp
+(use-package flyspell
+  :hook
+  ((text-mode-hook . flyspell-mode)
+   (prog-mode-hook . flyspell-prog-mode))
+  :custom
+  (ispell-dictionary "american"))
 #+end_src
 *** newsticker
-debloat news
 #+begin_src emacs-lisp
 (use-package newsticker
-    :custom
-    (newsticker-url-list '(
-    ;; emacs
-    ("Planet Emacslife" "https://planet.emacslife.com/atom.xml")
-    ("Mastering Emacs" "http://www.masteringemacs.org/feed/")
-    ("EmacsCast" "https://pinecast.com/feed/emacscast")
-    ("Emacs TIL" "https://emacstil.com/feed.xml")
-    ("Xenodium" "https://xenodium.com/rss")
-    ("lemmy" "https://lemmy.ml/feeds/c/emacs.xml?sort=Active")
-    ("null" "http://nullprogram.com/feed/")
-    ("50ply" "http://www.50ply.com/atom.xml")
-    ;; reddit
-    ("r/emacs" "https://www.reddit.com/r/emacs.rss")
-    ("r/guix" "https://www.reddit.com/r/guix.rss")
-    ("r/rust" "https://www.reddit.com/r/rust.rss")
-    ("r/leptos" "https://www.reddit.com/r/leptos.rss")
-    ;; yt rust
-    ("yt-semicolon" "https://www.youtube.com/feeds/videos.xml?channel_id=UCmXIqVsp5QWiVDpyBP32O0Q")
-    ("yt-rustuk" "https://www.youtube.com/feeds/videos.xml?channel_id=UCLksRXfBiEITZMUo2ssjSdA")
-    ("yt-syed" "https://www.youtube.com/feeds/videos.xml?channel_id=UC9o-c3jnKS_rKJTlfFjVY9g")
-    ("yt-jon" "https://www.youtube.com/feeds/videos.xml?channel_id=UC_iD0xppBwwsrM9DegC5cQQ")
-    ;; yt web
-    ("yt-codetv" "https://www.youtube.com/feeds/videos.xml?channel_id=UCnty0z0pNRDgnuoirYXnC5A")
-    ("yt-moon" "https://www.youtube.com/feeds/videos.xml?channel_id=UCjREVt2ZJU8ql-NC9Gu-TJw")
-    ;; yt emacs
-    ("yt-joshua" "https://www.youtube.com/feeds/videos.xml?channel_id=UC1tV5SjRyejRGeHAaMGYSsQ")
-    ("yt-emacsconf" "https://www.youtube.com/feeds/videos.xml?channel_id=UCwuyodzTl_KdEKNuJmeo99A")
-    ("yt-skybert" "https://www.youtube.com/feeds/videos.xml?channel_id=UCrYei-iwgnIBZiuHCdmSQFA")
-    ("yt-prot" "https://www.youtube.com/feeds/videos.xml?channel_id=UC0uTPqBCFIpZxlz_Lv1tk_g")
-    ("yt-positron" "https://www.youtube.com/feeds/videos.xml?channel_id=UCqM0zDcFNdAHj7uQkprLszg")
-    ("yt-element" "https://www.youtube.com/feeds/videos.xml?channel_id=UC--_DvRzKXtQyVdOWVLUJCA")
-    ;; yt linux
-    ("yt-tony" "https://www.youtube.com/feeds/videos.xml?channel_id=UC65_CVnMw6hvPET_DRDg3GA")
-    ;;articles
-    ("tecmint" "https://morss.it/https://www.tecmint.com/feed/")
-    ("itsfoss" "https://morss.it/https://itsfoss.com/rss/")
-    ("hackaday" "https://morss.it/feeds.feedburner.com/hackaday")
-    ("guardian" "https://morss.it/https://www.theguardian.com/uk/technology/rss")
-    ("soydev medium" "https://morss.it/https://medium.com/feed/tag/software-development")
-    ("tech medium" "https://morss.it/https://medium.com/feed/tag/technology")
-    ("hn newest" "https://morss.it/https://hnrss.org/newest")
-    ("hn front" "https://morss.it/https://hnrss.org/frontpage")
-    ("hn best" "https://morss.it/https://hnrss.org/best")
-    )))
+  :custom
+  (newsticker-url-list
+   '(;; emacs
+     ("Sacha Chua" "https://sachachua.com/blog/feed/index.xml")
+     ("Planet Emacslife" "https://planet.emacslife.com/atom.xml")
+     ("Mastering Emacs" "http://www.masteringemacs.org/feed/")
+     ("EmacsCast" "https://pinecast.com/feed/emacscast")
+     ("Emacs TIL" "https://emacstil.com/feed.xml")
+     ("Xenodium" "https://xenodium.com/rss")
+     ;; reddit
+     ("r/emacs" "https://www.reddit.com/r/emacs.rss")
+     ("r/linux" "https://www.reddit.com/r/linux.rss")
+     ("r/guix" "https://www.reddit.com/r/guix.rss")
+     ("r/rust" "https://www.reddit.com/r/rust.rss")
+     ("r/leptos" "https://www.reddit.com/r/leptos.rss")
+     ("r/kenya" "https://www.reddit.com/r/Kenya.rss")
+     ("r/nairobi" "https://www.reddit.com/r/Nairobi.rss")
+     ("r/nairobitechies" "https://www.reddit.com/r/nairobitechies.rss")
+     ;; rust
+     ("official.rs" "https://blog.rust-lang.org/feed.xml")
+     ("steve.rs" "https://feeds.feedburner.com/steveklabnik/words")
+     ;; yt rust
+     ("semicolon" "https://www.youtube.com/feeds/videos.xml?channel_id=UCmXIqVsp5QWiVDpyBP32O0Q")
+     ("rustuk" "https://www.youtube.com/feeds/videos.xml?channel_id=UCLksRXfBiEITZMUo2ssjSdA")
+     ("syed" "https://www.youtube.com/feeds/videos.xml?channel_id=UC9o-c3jnKS_rKJTlfFjVY9g")
+     ("jon" "https://www.youtube.com/feeds/videos.xml?channel_id=UC_iD0xppBwwsrM9DegC5cQQ")
+     ("greg" "https://www.youtube.com/feeds/videos.xml?channel_id=UCxjjVZaykWsAjAAwlHfry8Q")
+     ("rustify" "https://www.youtube.com/feeds/videos.xml?channel_id=UC7OY971Es9P_AcXGYKms87A")
+     ("jeremy" "https://www.youtube.com/feeds/videos.xml?channel_id=UCiT_r1GD7JSftnbViKHcOtQ")
+     ;; yt web
+     ("codetv" "https://www.youtube.com/feeds/videos.xml?channel_id=UCnty0z0pNRDgnuoirYXnC5A")
+     ("moon" "https://www.youtube.com/feeds/videos.xml?channel_id=UCjREVt2ZJU8ql-NC9Gu-TJw")
+     ;; yt emacs
+     ("joshua" "https://www.youtube.com/feeds/videos.xml?channel_id=UC1tV5SjRyejRGeHAaMGYSsQ")
+     ("emacsconf" "https://www.youtube.com/feeds/videos.xml?channel_id=UCwuyodzTl_KdEKNuJmeo99A")
+     ("skybert" "https://www.youtube.com/feeds/videos.xml?channel_id=UCrYei-iwgnIBZiuHCdmSQFA")
+     ("prot" "https://www.youtube.com/feeds/videos.xml?channel_id=UC0uTPqBCFIpZxlz_Lv1tk_g")
+     ("positron" "https://www.youtube.com/feeds/videos.xml?channel_id=UCqM0zDcFNdAHj7uQkprLszg")
+     ("elements" "https://www.youtube.com/feeds/videos.xml?channel_id=UC--_DvRzKXtQyVdOWVLUJCA")
+     ("greg" "https://www.youtube.com/feeds/videos.xml?channel_id=UCiJCWrG9_BFY5hwH3D-2D-Q")
+     ("tsoding" "https://www.youtube.com/feeds/videos.xml?channel_id=UCrqM0Ym_NbK1fqeQG2VIohg")
+     ;; yt linux
+     ("tony" "https://www.youtube.com/feeds/videos.xml?channel_id=UC65_CVnMw6hvPET_DRDg3GA")
+     ("brodie" "https://www.youtube.com/feeds/videos.xml?channel_id=UCld68syR8Wi-GY_n4CaoJGA")
+     ;; yt tech
+     ("primetime" "https://www.youtube.com/feeds/videos.xml?channel_id=UCUyeluBRhGPCW4rPe_UvBZQ")
+     ;; general +articles
+     ("tecmint" "https://morss.it/https://www.tecmint.com/feed/")
+     ("itsfoss" "https://morss.it/https://itsfoss.com/rss/")
+     ("hackaday" "https://morss.it/feeds.feedburner.com/hackaday")
+     ("guardian" "https://morss.it/https://www.theguardian.com/uk/technology/rss")
+     ("hn newest" "https://morss.it/https://hnrss.org/newest")
+     ("hn front" "https://morss.it/https://hnrss.org/frontpage")
+     ("hn best" "https://morss.it/https://hnrss.org/best")
+     )))
 #+end_src
 *** eww
 #+begin_src emacs-lisp
 (use-package eww
-    :custom
-    (shr-inhibit-images t))
+  :custom
+  (shr-inhibit-images t))
+#+end_src
+*** doc-view
+#+begin_src emacs-lisp
+(use-package doc-view
+  :custom
+  (doc-view-unoconv-program "soffice")
+  (doc-view-scale-internally nil))
+#+end_src
+*** viper
+#+begin_src emacs-lisp
+(use-package viper
+  :init
+  (setq viper-expert-level 5
+        viper-inhibit-startup-message t
+        viper-always t
+        viper-case-fold-search t
+        viper-want-ctl-h-help t
+        viper-insert-state-cursor-color "red"
+        viper-replace-overlay-cursor-color "red"
+        viper-vi-style-in-minibuffer nil)
+  :custom
+  (viper-mode t)
+  :config
+  ;; basic
+  (define-key viper-insert-global-user-map "\C-w" 'kill-region)
+  (define-key viper-insert-global-user-map "\C-[" 'viper-exit-insert-state)
+  (define-key viper-vi-global-user-map "\C-y" 'yank)
+  (define-key viper-vi-global-user-map "v" 'set-mark-command)
+  ;; helix influence
+  (define-key viper-vi-global-user-map "gh" 'beginning-of-line)
+  (define-key viper-vi-global-user-map "gl" 'end-of-line)
+  (define-key viper-vi-global-user-map "gg" 'beginning-of-buffer)
+  )
 #+end_src
 *** auto-complete
 capfs inbuilt
 #+begin_src emacs-lisp
 (use-package emacs
-    :custom
-    (tab-always-indent 'complete)
-    (completion-ignore-case t))
+  :custom
+  (tab-always-indent 'complete)
+  (completion-ignore-case t))
 (use-package completion-preview
-    :custom
-    (completion-review-sort-function 'identity)
-    (global-completion-preview-mode t))
+  :custom
+  (completion-review-sort-function 'identity)
+  (global-completion-preview-mode t))
 (use-package minibuffer
-    :custom
-    (read-file-name-completion-ignore-case t)
-    ;; (completions-format 'one-column)
-    ;; (completions-detailed t)
-    ;; (minibuffer-visible-completions t)
-    ;; (completion-eager-display t) update?
-    ;; (completion-cycle-threshold t)
-    ;; (completion-auto-help 'always)
-    ;; (completion-show-help nil)
-    (completion-styles '(basic substring partial-completion initials flex))
-    (completions-sort 'historical))
+  :custom
+  (read-file-name-completion-ignore-case t)
+  ;; (completion-show-help nil)
+  ;; (completion-auto-help 'always)
+  ;; (completion-auto-select t)
+  ;; (completions-format 'one-column)
+  ;; (minibuffer-visible-completions t)
+  (completions-detailed t)
+  (completion-styles '(partial-completion flex initials))
+  (completions-sort 'historical))
 (use-package icomplete
-    :hook (after-init . fido-vertical-mode)
-    :bind
-    (:map icomplete-minibuffer-map
-    ("C-n" . icomplete-forward-completions)
-    ("C-p" . icomplete-backward-completions)
-    ("<TAB>" . icomplete-force-complete))
-    :custom
-    (icomplete-compute-delay 0)
-    (icomplete-prospects-height 10)
-    (icomplete-show-matches-on-no-input t)
-    (icomplete-scroll t)
-    (icomplete-in-buffer t)
-    (icomplete-vertical-in-buffer-adjust-list t)
-    :config
-    (advice-add 'completion-at-point
-    :after #'minibuffer-hide-completions)
-    )
-;; (use-package cape
-;;     :init
-;;     (add-hook 'completion-at-point-functions #'cape-history)
-;;     (add-hook 'completion-at-point-functions #'cape-emoji)
-;;     (add-hook 'completion-at-point-functions #'cape-dict)
-;;     (add-hook 'completion-at-point-functions #'cape-abbrev)
-;;     (add-hook 'completion-at-point-functions #'cape-dabbrev)
-;;     (add-hook 'completion-at-point-functions #'cape-file)
-;;     (add-hook 'completion-at-point-functions #'cape-keyword)
-;;     (add-hook 'completion-at-point-functions #'cape-elisp-block)
-;;     (add-hook 'completion-at-point-functions #'cape-elisp-symbol))
+  ;; :hook (after-init . fido-vertical-mode)
+  :hook (after-init . fido-mode)
+  :bind
+  (:map icomplete-minibuffer-map
+        ("C-n" . icomplete-forward-completions)
+        ("C-p" . icomplete-backward-completions)
+        ("<TAB>" . icomplete-force-complete))
+  :custom
+  (icomplete-prospects-height 1)
+  (icomplete-in-buffer t)
+  ;; (icomplete-compute-delay 0)
+  ;; (icomplete-show-matches-on-no-input t)
+  ;; (icomplete-scroll t)
+  ;; (icomplete-vertical-in-buffer-adjust-list t)
+  :config
+  (advice-add 'completion-at-point
+              :after #'minibuffer-hide-completions)
+  )
 #+end_src
 ** external
-*** pdf
-#+begin_src emacs-lisp
-(use-package pdf-tools
-    :mode ("\\.pdf$" . pdf-view-mode)
-    :custom (pdf-view-display-size 'fit-height)
-    :hook (pdf-view-mode . pdf-view-themed-minor-mode)
-    :config
-    (pdf-tools-install :no-query))
-#+end_src
 *** pulsar
 #+begin_src emacs-lisp
 (use-package pulsar
-    :custom
-    (pulsar-face 'pulsar-red)
-    (pulsar-global-mode t))
+  :custom
+  (pulsar-face 'pulsar-red)
+  (pulsar-global-mode t))
 #+end_src
 *** emms
 #+begin_src emacs-lisp
 (use-package emms
-    :bind
-    (("C-c m m" . emms)
-    ("C-c m p" . emms-pause)
-    ("C-c m n" . emms-next)
-    ("C-c m N" . emms-previous)
-    ("C-c m f" . emms-add-directory))
-    :custom
-    (emms-repeat-playlist t)
-    (emms-source-file-default-directory "~/silence/hollow/")
-    (emms-history-file nil)
-    (emms-cache-file nil)
-    (emms-player-mpv-parameters '("--quiet" "--really-quiet" "--no-audio-display" "--speed=1"))
-    (emms-player-list '(emms-player-mpg321
-    emms-player-ogg123
-    emms-player-mpv))
-    :config
-    (require 'emms-player-simple)
-    (require 'emms-source-file)
-    (require 'emms-source-playlist)
-    (emms-minimalistic))
+  :bind
+  (("C-c m m" . emms)
+   ("C-c m p" . emms-pause)
+   ("C-c m n" . emms-next)
+   ("C-c m N" . emms-previous)
+   ("C-c m f" . emms-add-directory))
+  :custom
+  (emms-repeat-playlist t)
+  (emms-source-file-default-directory "~/silence/hollow/")
+  (emms-history-file nil)
+  (emms-cache-file nil)
+  (emms-player-mpv-parameters '("--quiet" "--really-quiet" "--no-audio-display" "--speed=1"))
+  (emms-player-list '(emms-player-mpg321
+                      emms-player-ogg123
+                      emms-player-mpv))
+  :config
+  (require 'emms-player-simple)
+  (require 'emms-source-file)
+  (require 'emms-source-playlist)
+  (emms-minimalistic))
 #+end_src
 *** flash cards
 #+begin_src emacs-lisp
@@ -720,73 +755,78 @@ capfs inbuilt
 *** ledger-mode
 #+begin_src emacs-lisp
 (use-package ledger-mode
-    :mode ("\\.dat$" . ledger-mode)
-    ;; :hook (before-save-hook . (lambda () (ledger-mode-clean-buffer)))
-    :hook (before-save-hook . ledger-mode-clean-buffer)
-    :custom
-    (ledger-complete-in-steps t))
+  :mode ("\\.dat$" . ledger-mode)
+  ;; :hook (before-save-hook . ledger-mode-clean-buffer)
+  :custom
+  (ledger-complete-in-steps t))
 #+end_src
 *** games
 idk why stockfish isn't playing
 #+begin_src emacs-lisp
 (use-package chess
-    :custom
-    (chess-default-engine #'chess-gnuchess)
-    (chess-default-display #'chess-ics1))
+  :custom
+  (chess-default-engine #'chess-gnuchess)
+  (chess-default-display #'chess-ics1))
 (use-package typit)
 (use-package sudoku
-    :custom
-    (sudoku-level 'easy))
+  :custom
+  (sudoku-level 'easy))
 #+end_src
 ** dev
 *** eldoc
 #+begin_src emacs-lisp
 (use-package eldoc
-    :custom
-    (eldoc-help-at-pt t))
+  :custom
+  (eldoc-help-at-pt t))
 #+end_src
 *** gptel
 #+begin_src emacs-lisp
 (use-package gptel
-    :bind
-    (("C-c g g" . gptel)
-    ("C-c g m" . gptel-menu)
-    ("C-c g s" . gptel-send))
-    :custom
-    (gptel-default-mode #'org-mode)
-    (gptel-model 'tngtech/deepseek-r1t2-chimera:free)
-    ;; open router
-    (gptel-backend
-    (gptel-make-openai "OpenRouter"
-    :host "openrouter.ai"
-    :endpoint "/api/v1/chat/completions"
-    :stream t
-    :key (auth-source-pick-first-password :host "openrouter.ai")
-    :models '(tngtech/deepseek-r1t2-chimera:free)))
-    ;; ;; ollama
-    ;; (gptel-backend
-    ;; (gptel-make-ollama "Ollama"
-    ;; :host "localhost:11434"
-    ;; :stream t
-    ;; :models '(tinyllama:latest)))
-    )
+  :bind
+  (("C-c g g" . gptel)
+   ("C-c g m" . gptel-menu)
+   ("C-c g s" . gptel-send))
+  :custom
+  (gptel-default-mode #'org-mode)
+  (gptel-model 'liquid/lfm-2.5-1.2b-thinking:free)
+  :config
+  ;; gemini
+  (setq gptel-backend
+        (gptel-make-gemini "Gemini"
+                           :key (auth-source-pick-first-password :host "gemini.google")
+                           :stream t))
+  ;; ollama
+  (setq gptel-backend
+        (gptel-make-ollama "Ollama"
+                           :host "localhost:11434"
+                           :stream t
+                           :models '(tinyllama:latest)))
+  ;; open router
+  (setq gptel-backend
+        (gptel-make-openai "OpenRouter"
+                           :host "openrouter.ai"
+                           :endpoint "/api/v1/chat/completions"
+                           :stream t
+                           :key (auth-source-pick-first-password :host "openrouter.ai")
+                           :models '(arcee-ai/trinity-large-preview:free
+                                     deepseek/deepseek-r1-0528:free
+                                     liquid/lfm-2.5-1.2b-thinking:free
+                                     upstage/solar-pro-3:free
+                                     nvidia/nemotron-3-nano-30b-a3b:free
+                                     stepfun/step-3.5-flash:free)))
+  )
 #+end_src
 *** rust
-    #+begin_src emacs-lisp
-    (use-package rustic
-    :mode ("\\.rs$" . rustic-mode)
-    :custom
-    (rustic-lsp-client 'eglot)
-    (rustic-cargo-use-last-stored-arguments t))
-    #+end_src
+#+begin_src emacs-lisp
+(use-package rustic
+  :mode ("\\.rs$" . rustic-mode)
+  :custom
+  (rustic-lsp-client 'eglot)
+  (rustic-cargo-use-last-stored-arguments t))
+#+end_src
 *** envrc
 #+begin_src emacs-lisp
 (use-package envrc
-    :init
-(envrc-global-mode))
-#+end_src
-** social
-#+begin_src emacs-lisp
-(use-package ement)
-(use-package mastodon)
+  :init
+  (envrc-global-mode))
 #+end_src

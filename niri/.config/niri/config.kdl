@@ -68,7 +68,7 @@ window-rule {
     open-maximized true
 }
 spawn-sh-at-startup "mako"
-spawn-sh-at-startup "swaybg -i ~/stash/pics/ecl.jpg"
+spawn-sh-at-startup "swaybg -i ~/stash/pics/itachi.jpg"
 binds {
 		Mod+Return { spawn "emacs"; }
 		Mod+P { spawn-sh "rust-emacs"; }
