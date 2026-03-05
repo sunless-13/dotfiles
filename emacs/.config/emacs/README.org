@@ -552,7 +552,7 @@ ai generated solution for column fill
   (rcirc-server-alist
    '(("irc.libera.chat"
       :nick "sunless"
-      :channels ("#emacs")
+      :channels ("#guix")
       :port 6697
       :encryption tls)))
   (rcirc-default-full-name "Darkness blinds as the Light")
@@ -571,8 +571,8 @@ fix why i'm getting error
 #+begin_src emacs-lisp
 (use-package flyspell
   :hook
-  ((text-mode-hook . flyspell-mode)
-   (prog-mode-hook . flyspell-prog-mode))
+  ((text-mode . flyspell-mode)
+   (prog-mode . flyspell-prog-mode))
   :custom
   (ispell-dictionary "american"))
 #+end_src
@@ -639,18 +639,28 @@ fix why i'm getting error
 #+begin_src emacs-lisp
 (use-package eww
   :custom
+  (shr-use-fonts nil)
+  (shr-use-colors nil)
   (shr-inhibit-images t))
 #+end_src
 *** doc-view
 #+begin_src emacs-lisp
 (use-package doc-view
+  :hook (doc-view-mode . doc-view-fit-height-to-window)
+  :bind
+  (:map doc-view-mode-map
+        ("j" . doc-view-next-page)
+        ("k" . doc-view-previous-page))
   :custom
   (doc-view-unoconv-program "soffice")
-  (doc-view-scale-internally nil))
+  (doc-view-pdfdraw-program "mutool")
+  (doc-view-image-width nil))
 #+end_src
 *** viper
 #+begin_src emacs-lisp
 (use-package viper
+  :custom
+  (viper-mode t)
   :init
   (setq viper-expert-level 5
         viper-inhibit-startup-message t
@@ -659,9 +669,20 @@ fix why i'm getting error
         viper-want-ctl-h-help t
         viper-insert-state-cursor-color "red"
         viper-replace-overlay-cursor-color "red"
+        viper-ESC-moves-cursor-back nil
+        viper-ex-style-motion nil
         viper-vi-style-in-minibuffer nil)
-  :custom
-  (viper-mode t)
+  ;; :bind 
+  ;; (:map viper-insert-global-user-map
+  ;;       ("C-w" . kill-region)
+  ;;       ("C-[" . viper-exit-insert-state))
+  ;; (:map viper-vi-global-user-map
+  ;;       ("C-y" . yank)
+  ;;       ("v"   . set-mark-command)
+  ;;       ("g h" . beginning-of-line)
+  ;;       ("g l" . end-of-line)
+  ;;       ("g g" . beginning-of-buffer)
+  ;;       ("g e" . end-of-buffer))
   :config
   ;; basic
   (define-key viper-insert-global-user-map "\C-w" 'kill-region)
@@ -672,7 +693,18 @@ fix why i'm getting error
   (define-key viper-vi-global-user-map "gh" 'beginning-of-line)
   (define-key viper-vi-global-user-map "gl" 'end-of-line)
   (define-key viper-vi-global-user-map "gg" 'beginning-of-buffer)
-  )
+  (define-key viper-vi-global-user-map "ge" 'end-of-buffer)
+  ;; dired
+  (setq my-dired-vi-purist-map (make-sparse-keymap))
+  (define-key my-dired-vi-purist-map "k" 'viper-previous-line)
+  (define-key my-dired-vi-purist-map "j" 'viper-next-line)
+  (define-key my-dired-vi-purist-map "l" 'dired-find-file)
+  (define-key my-dired-vi-purist-map "h" 'dired-up-directory)
+  (define-key my-dired-vi-purist-map "dd" 'dired-flag-file-deletion)
+  (define-key my-dired-vi-purist-map "u" 'dired-unmark)
+  (viper-modify-major-mode 'dired-mode
+                           'emacs-state my-dired-vi-purist-map)
+)
 #+end_src
 *** auto-complete
 capfs inbuilt
@@ -727,12 +759,22 @@ capfs inbuilt
 *** emms
 #+begin_src emacs-lisp
 (use-package emms
+  :preface
+  (require 'emms-playlist-mode) ; Forces the built-in library to load
+  (require 'emms-player-simple)
+  (require 'emms-source-file)
+  (require 'emms-source-playlist)
+  (emms-minimalistic)
   :bind
   (("C-c m m" . emms)
    ("C-c m p" . emms-pause)
    ("C-c m n" . emms-next)
    ("C-c m N" . emms-previous)
-   ("C-c m f" . emms-add-directory))
+   ("C-c m f" . emms-add-directory)
+   :map emms-playlist-mode-map
+   ("l" . emms-playlist-mode-play-smart)
+   ("j" . next-line)
+   ("k" . previous-line))
   :custom
   (emms-repeat-playlist t)
   (emms-source-file-default-directory "~/silence/hollow/")
@@ -741,18 +783,14 @@ capfs inbuilt
   (emms-player-mpv-parameters '("--quiet" "--really-quiet" "--no-audio-display" "--speed=1"))
   (emms-player-list '(emms-player-mpg321
                       emms-player-ogg123
-                      emms-player-mpv))
-  :config
-  (require 'emms-player-simple)
-  (require 'emms-source-file)
-  (require 'emms-source-playlist)
-  (emms-minimalistic))
+                      emms-player-mpv)))
 #+end_src
 *** flash cards
 #+begin_src emacs-lisp
 (use-package org-drill)
 #+end_src
 *** ledger-mode
+ledger mode map
 #+begin_src emacs-lisp
 (use-package ledger-mode
   :mode ("\\.dat$" . ledger-mode)

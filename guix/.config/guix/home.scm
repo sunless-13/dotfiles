@@ -29,7 +29,6 @@
     "stow"
     "fontconfig"
     ;; fonts
-    "font-google-noto-sans-cjk"
     "font-google-noto-emoji"
     "font-iosevka"
     ;; sound
@@ -66,7 +65,6 @@
     "aria2"
     "yt-dlp"
     "mpv"
-    "librewolf"
     "icecat-minimal"
     ;; guix
     "guile"
@@ -74,6 +72,7 @@
     "aspell"
     ;; doc-view dependencies
     "mupdf" 
+    "poppler"
     "libreoffice"
     ;; apps
     "chess"    
@@ -95,8 +94,6 @@
     "emacs-chess"
     "emacs-typit"
     "emacs-sudoku"
-    ;; "emacs-ement"
-    ;; "emacs-mastodon"
     )))
  
  ;; service
@@ -104,7 +101,6 @@
   (append
    (list
     (service home-pipewire-service-type)
-    ;; (service home-niri-service-type)
     (service home-dbus-service-type)
     (service home-gpg-agent-service-type
              (home-gpg-agent-configuration
@@ -156,5 +152,4 @@
                  ))
               )
              )
-    ;; (service home-openssh-service-type)
     )%base-home-services)))
