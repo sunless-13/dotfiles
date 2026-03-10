@@ -43,7 +43,8 @@
        (name "sunless")
        (group "users")
        (supplementary-groups
-        '("wheel" "audio" "video" "adbusers" "cgroup" "input")))
+        '("wheel" "audio" "video"
+          "adbusers" "cgroup" "input")))
       %base-user-accounts))
 
     ;; packages
@@ -55,9 +56,9 @@
       (list
        (service dhcpcd-service-type)
        (service ntp-service-type)
-       ;; (service iptables-service-type)
        (service sane-service-type)
        (service elogind-service-type)
+       (service iptables-service-type)
        (service rootless-podman-service-type
                 (rootless-podman-configuration
                  (subgids
@@ -66,8 +67,8 @@
                   (list (subid-range (name "sunless")))))
                 )
        (udev-rules-service 'android android-udev-rules
-                           #:groups '("adbusers"))
-       )%base-services))
+                           #:groups '("adbusers")))
+      %base-services))
     
     ;; Allow resolution of '.local' host names with mDNS.
     (name-service-switch %mdns-host-lookup-nss))

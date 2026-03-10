@@ -44,36 +44,36 @@
     "direnv"
     ;; pdf maker
     "groff"
-    "xpdf"
+    ;; "xpdf"
     ;; editor
-    "imagemagick"
-    "wf-recorder"
-    "ffmpeg"
-    "libass"
+    ;; "imagemagick"
+    ;; "wf-recorder"
+    ;; "ffmpeg"
+    ;; "libass"
     ;; window manager
     "niri"
     "xwayland-satellite"
-    "xdg-desktop-portal-gtk"
+    ;; "xdg-desktop-portal-gtk"
     "libnotify"
     "mako"
-    "swaybg"
+    ;; "swaybg"
     ;; containers
-    "podman"
-    "podman-compose"
+    ;; "podman"
+    ;; "podman-compose"
     ;; noice apps
     "fastfetch-minimal"
     "aria2"
     "yt-dlp"
     "mpv"
-    "icecat-minimal"
+    "librewolf"
     ;; guix
-    "guile"
+    ;; "guile"
     ;; dictionary
     "aspell"
     ;; doc-view dependencies
     "mupdf" 
-    "poppler"
-    "libreoffice"
+    "unoconv"
+    ;; "libreoffice"
     ;; apps
     "chess"    
     "ledger"
@@ -81,10 +81,8 @@
     "emacs-next-pgtk"
     "emacs-guix"
     "emacs-geiser"
-    "emacs-pulsar"
     "emacs-emms"
     "emacs-org-drill"
-    "emacs-org-modern"
     "emacs-ledger-mode"
     "emacs-eat"
     "emacs-pinentry"
@@ -128,7 +126,7 @@
                  ("LC_ALL" . "en_US.UTF-8")
                  ("TERM" . "xterm-256color")
                  ("GPG_TTY" . "/dev/tty1")
-                 ("BROWSER" . "icecat")
+                 ("BROWSER" . "librewolf")
                  ))
               (bashrc
                (list

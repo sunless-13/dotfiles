@@ -1,7 +1,6 @@
 #+PROPERTY: header-args :tangle "~/.config/emacs/init.el"
 #+CATEGORY: emacs
 * essentials
-noice stuff
 ** early-init
 #+begin_src emacs-lisp :tangle "~/.config/emacs/early-init.el"
 ;; -*- lexical-binding: t; -*-
@@ -23,6 +22,13 @@ noice stuff
   (setq initial-scratch-message nil)
   (setq inhibit-splash-screen t)
   (setq mode-line-format nil)
+  ;; ai recommendation
+  (setq-default 
+   load-prefer-newer t
+   gc-cons-threshold most-positive-fixnum) ; Bump GC only for init
+  (push '(menu-bar-lines . 0) default-frame-alist)
+  (push '(tool-bar-lines . 0) default-frame-alist)
+  (push '(vertical-scroll-bars) default-frame-alist)
   ;; stop flashbang
   (set-face-attribute 'default nil :background "#000000" :foreground "#ffffff")
   (set-face-attribute 'mode-line nil :background "#000000" :foreground "#ffffff" :box nil))
@@ -39,7 +45,7 @@ noice stuff
   (ring-bell-function 'ignore)
   (use-short-answers t)
   (sentence-end-double-space nil)
-  ;; (text-mode-ispell-word-completion nil) ;; fix dictionary
+  (large-file-warning-threshold nil)
   (make-backup-files nil)
   (create-lockfiles nil))
 #+end_src
@@ -71,24 +77,19 @@ noice stuff
     "Kill all other buffers."
     (interactive)
      (mapc 'kill-buffer (delq (current-buffer) (buffer-list))))
-  :bind
-  (("C-x k" . kill-current-buffer)
-   ("C-x K" . kill-buffer-and-window)
-   ("C-c k" . KILL-ALL-other-buffers)
-   ("C-+" . text-scale-increase)
-   ("C--" . text-scale-decrease)
-   ("C-c e" . emoji-insert)
-   ("C-x ;" . comment-line))
   :hook
   (emacs-startup-hook . (lambda ()
                           (message "Loaded in %.2fs"
                                    (float-time (time-subtract after-init-time before-init-time))
                                   gcs-done)))
-  )
-;; select help
-(use-package help
-  :custom
-  (help-window-select t))
+  :bind
+  ("C-x k" . kill-current-buffer)
+  ("C-x K" . kill-buffer-and-window)
+  ("C-c k" . KILL-ALL-other-buffers)
+  ("C-+" . text-scale-increase)
+  ("C--" . text-scale-decrease)
+  ("C-c e" . emoji-insert)
+  ("C-x ;" . comment-line))
 #+end_src
 ** theme
 noice ai generated solution
@@ -114,66 +115,51 @@ noice ai generated solution
   (load-theme 'modus-vivendi-tritanopia))
 #+end_src
 ** modeline
-*** battery
 #+begin_src emacs-lisp
-(use-package battery
-  :bind ("C-c b" . battery)
+(use-package emacs
   :custom
-  (display-battery-mode t)
-  ;; (battery-mode-line-format "[%p%%]")
-  )
-#+end_src
-*** time
-#+begin_src emacs-lisp
+  ;; Clean crumbs
+  (mode-line-position-line-format '("%l"))
+  ;; modeline
+  (mode-line-format
+   '((:eval
+      (if (mode-line-window-selected-p)
+          ;; ACTIVE WINDOW
+          (list
+           (propertize "%b" 'face
+                       (if (buffer-modified-p)
+                           'error
+                         'success))
+           " "
+           mode-line-position
+           project-mode-line-format
+           " "
+           vc-mode
+           " ")
+        ;; INACTIVE WINDOW
+        (list
+         (propertize "%b" 'face 'shadow))))
+     ;; alignment element must be literal
+     mode-line-format-right-align
+     ;; right side contents
+     (:eval
+      (when (mode-line-window-selected-p)
+        (list
+         org-mode-line-string
+         display-time-string
+         battery-mode-line-string
+         )
+        )))))
 (use-package time
   :custom
   (display-time-mode t)
   (display-time-default-load-average nil)
   (display-time-format "%H:%M %a %d %b"))
-#+end_src
-*** format
-fix the repetitive (preferrable disable modeline when window not selected)
-#+begin_src emacs-lisp
-(use-package emacs
+(use-package battery
+  :bind
+  ("C-c b" . battery)
   :custom
-  (mode-line-position-line-format '("%l"))
-  (mode-line-percent-position '("%o"))
-  ;; misc info variables changing
-  (global-mode-string
-   '(""
-     org-mode-line-string
-     display-time-string
-     battery-mode-line-string))
-  (mode-line-format
-   '(
-     (:eval
-      (when (mode-line-window-selected-p)
-        "%b"
-        ))
-     " "
-     (:eval
-      (when (mode-line-window-selected-p)
-        mode-line-position
-        ))
-     " "
-     (:eval
-      (when (mode-line-window-selected-p)
-        project-mode-line-format
-        ))
-     " "
-     (:eval
-      (when (mode-line-window-selected-p)
-        vc-mode
-        ))
-     ;; right side
-     mode-line-format-right-align
-     (:eval
-      (when (mode-line-window-selected-p)
-        mode-line-misc-info
-        ))
-     )
-   )
-  )
+  (display-battery-mode t))
 #+end_src
 ** windows
 #+begin_src emacs-lisp
@@ -213,9 +199,15 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 #+begin_src emacs-lisp
 (use-package dired
   :hook
-  ((dired-mode . hl-line-mode)
-   (dired-mode . guix-prettify-mode)
-   (dired-mode . dired-hide-details-mode))
+  (dired-mode . hl-line-mode)
+  (dired-mode . guix-prettify-mode)
+  (dired-mode . dired-hide-details-mode)
+  :bind
+  (:map dired-mode-map
+        ("j" . next-line)
+        ("k" . previous-line)
+        ("l" . dired-find-file)
+        ("h" . dired-up-directory))
   :custom
   (dired-listing-switches "-Alh --group-directories-first")
   (dired-hide-details-hide-symlink-targets nil)
@@ -241,12 +233,9 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
   :custom
   (org-return-follows-link t)
   (org-startup-folded 'content)
-  (org-hide-emphasis-markers t)
+  (org-use-sub-superscripts nil)
   (org-pretty-entities t)
   (org-ellipsis " ")
-  ;; (org-hide-leading-stars t)
-  (org-use-speed-commands t)
-  (org-use-sub-superscripts nil)
   ;; block templates
   (org-structure-template-alist
    '(("s" . "src")
@@ -255,33 +244,34 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
      ("e" . "src emacs-lisp")
      ("r" . "src rust")))
   (org-todo-keywords
-   '((sequence "TODO(t)" "ONLINE(o)" "NIGHT(n)" "|" "DONE(d)")))
+   '((sequence "TODO(t)" "NEXT(n)" "|" "DONE(d)")))
   (org-tag-alist
    '(;; location
      (:startgroup)
-     ("darkness" . ?d)
-     ("light" . ?l)
-     ("scholar" . ?s)
+     ("arcane")
+     ("tinker")
+     ("wild")
+     ("int")
+     ("rad")
+     ("scholar")
      (:endgroup)
      (:newline)
      ;; scale
      (:startgroup)
-     ("insanity" . ?i)
-     ("challenge" . ?c)
-     ("ez" . ?e)
+     ("ez")
+     ("dark")
+     ("chore")
      (:endgroup)
-     ;; misc
-     ("urgent")
-     ("tinker")
-     ("read")
      (:newline)
-     ("horizon")
-     ("automation")
-     ("tutorial")
-     (:newline)
-     ("docs")
-     ("question")
-     ("plan")))
+     ;; action
+     (:startgroup)
+     ("seek")
+     ("plan")
+     ("mine")
+     (:endgroup)
+     ))
+  ;; essential modules
+  (org-modules '(org-habit))
   :bind
   ("C-c l" . org-store-link))
 (use-package org-src
@@ -312,6 +302,7 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
   (("C-c a" . org-agenda)
    ("C-c c" . org-capture))
   :custom
+  (org-agenda-diary-file "~/alchemy/insanity/emo/soul/habits.org")
   (org-agenda-window-setup 'current-window)
   (org-agenda-custom-commands
    '(
@@ -342,7 +333,7 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
 (use-package org
   :custom
   (org-capture-templates
-   '(("c" "Chaos" plain (file "~/alchemy/insanity/chaos.org")
+   '(("q" "quest" plain (file "~/alchemy/insanity/quest.org")
       "%?")
      ("j" "Journal" plain (file+datetree "~/alchemy/insanity/emo/soul/journal.org")
       "%?")
@@ -360,27 +351,6 @@ why is =:hook (hl-line-mode dired-hide-details-mode)= not working (sauce [[info:
   :custom
   (org-clock-sound t)
   (org-show-notification-timeout 10))
-#+end_src
-** org habit
-enable this org module to start working with habits
-#+begin_src emacs-lisp
-(use-package org-habit
-  :after org)
-(use-package org-agenda
-  :after org
-  :custom
-  (org-agenda-diary-file "~/alchemy/insanity/emo/soul/habits.org"))
-#+end_src
-** org modern
-love the =src= blocks and =bullets=
-disable in tty
-#+begin_src emacs-lisp
-(use-package org-modern
-  :if (display-graphic-p)
-  :custom
-  (org-modern-tag nil)
-  (org-modern-todo nil)
-  (global-org-modern-mode t))
 #+end_src
 * packages
 ** melpa
@@ -428,7 +398,7 @@ i'm using guix so i don't need to download packages normally
 (use-package auth-source
   :custom
   (auth-sources '("~/.authinfo.gpg")))
-(use-package pinentry)
+;; (use-package pinentry)
 (use-package epg-config
   :custom
   (epg-pinentry-mode 'loopback))
@@ -494,15 +464,9 @@ i'm using guix so i don't need to download packages normally
                 (name . "^\\*info\\*$")
                 (name . "^\\*scratch\\*$")
                 (name . "^\\*Backtrace\\*$")
-                (name . "^\\*Messages\\*$"))))))
-  )
+                (name . "^\\*Messages\\*$")))))))
 #+end_src
-
 *** eshell
-fix clear eshell buffer + clear-scrollback
-=emacs-load-hook= only works when creating the first Eshell-buffer
-using =emacs-first-time-mode= fixes the problem when new eshell buffer is opened
-ensure =eat (emulate a terminal)= is installed (and other inferior terminals uninstalled)
 #+begin_src emacs-lisp
 (use-package eshell
   :hook (eshell-load . eat-eshell-mode)
@@ -510,9 +474,8 @@ ensure =eat (emulate a terminal)= is installed (and other inferior terminals uni
   (eshell-banner-message "")
   :bind
   ("C-c s" . eshell))
-(use-package eat)
 #+end_src
-*** gnus
+*** COMMENT gnus
 test sending and receiving email
 use as rss reader
 #+begin_src emacs-lisp
@@ -529,9 +492,9 @@ use as rss reader
                                            (nnimap-address "imap.gmail.com")
                                            (nnimap-server-port "imaps")
                                            (nnimap-stream ssl))))
-  (gnus-directory "~/.config/emacs/news")
-  (message-directory "~/.config/emacs/mail")
-  (nnfolder-directory "~/.config/emacs/mail/archive")
+  ;; (gnus-directory "~/.config/emacs/news")
+  ;; (message-directory "~/.config/emacs/mail")
+  ;; (nnfolder-directory "~/.config/emacs/mail/archive")
   ;; random
   (gnus-interactive-exit nil)
   (gnus-asynchronous t)
@@ -540,19 +503,16 @@ use as rss reader
   (smtpmail-default-smtp-server "smtp.gmail.com"))
 #+end_src
 *** irc
-ai generated solution for column fill
 #+begin_src emacs-lisp
 (use-package rcirc
-  :bind
-  ("C-c i" . irc)
   :hook
-  ((rcirc-mode . flyspell-mode)
-   (rcirc-mode . rcirc-omit-mode))
+  (rcirc-mode . flyspell-mode)
+  (rcirc-mode . rcirc-omit-mode)
   :custom
   (rcirc-server-alist
    '(("irc.libera.chat"
       :nick "sunless"
-      :channels ("#guix")
+      ;; :channels ("#guix")
       :port 6697
       :encryption tls)))
   (rcirc-default-full-name "Darkness blinds as the Light")
@@ -563,23 +523,36 @@ ai generated solution for column fill
   (rcirc-omit-unless-requested '("TOPIC" "NAMES"))
   :config
   (setq rcirc-authinfo
-        `(("Libera.Chat" nickserv "sunless" ,(auth-source-pick-first-password :host "irc"))))
-  )
+        `(("Libera.Chat" nickserv "sunless" ,(auth-source-pick-first-password :host "irc")))))
 #+end_src
 *** flyspell
-fix why i'm getting error
 #+begin_src emacs-lisp
 (use-package flyspell
   :hook
-  ((text-mode . flyspell-mode)
-   (prog-mode . flyspell-prog-mode))
+  (text-mode . flyspell-mode)
+  (prog-mode . flyspell-prog-mode)
   :custom
   (ispell-dictionary "american"))
 #+end_src
 *** newsticker
 #+begin_src emacs-lisp
+(use-package newst-plainview
+  :hook
+  (newsticker-mode . imenu-add-menubar-index)
+  :bind
+  (("C-c n" . newsticker-show-news)
+   :map newsticker-mode-map
+   ("J" . newsticker-next-feed)
+   ("j" . newsticker-next-item)
+   ("K" . newsticker-previous-feed)
+   ("k" . newsticker-previous-item)
+   ("l" . newsticker-show-entry)
+   ("L" . newsticker-show-all-desc)
+   ("h" . newsticker-hide-entry)
+   ("H" . newsticker-hide-all-desc)))
 (use-package newsticker
   :custom
+  (newsticker-frontend 'newsticker-plainview)
   (newsticker-url-list
    '(;; emacs
      ("Sacha Chua" "https://sachachua.com/blog/feed/index.xml")
@@ -637,7 +610,20 @@ fix why i'm getting error
 #+end_src
 *** eww
 #+begin_src emacs-lisp
+(use-package browse-url
+  :custom
+  (browse-url-browser-function 'eww-browse-url))
 (use-package eww
+  :bind
+  (:map eww-mode-map
+        ("j" . next-line)
+        ("k" . previous-line)
+        ("l" . forward-char)
+        ("h" . backward-char)
+        ("L" . eww-forward-url)
+        ("H" . eww-back-url)
+        ("g" . eww)
+        ("G" . eww-reload))
   :custom
   (shr-use-fonts nil)
   (shr-use-colors nil)
@@ -646,15 +632,38 @@ fix why i'm getting error
 *** doc-view
 #+begin_src emacs-lisp
 (use-package doc-view
-  :hook (doc-view-mode . doc-view-fit-height-to-window)
   :bind
   (:map doc-view-mode-map
         ("j" . doc-view-next-page)
-        ("k" . doc-view-previous-page))
+        ("k" . doc-view-previous-page)
+        ("g" . doc-view-first-page)
+        ("G" . doc-view-last-page))
   :custom
-  (doc-view-unoconv-program "soffice")
-  (doc-view-pdfdraw-program "mutool")
-  (doc-view-image-width nil))
+  (doc-view-odf->pdf-converter-program "unoconv")
+  (doc-view-pdfdraw-program "mutool"))
+#+end_src
+*** help
+#+begin_src emacs-lisp
+(use-package help
+  :bind
+  (:map help-mode-map
+        ("j" . next-line)
+        ("k" . previous-line)
+        ("l" . forward-char)
+        ("h" . backward-char)
+        ("gl" . beginning-of-line)
+        ("gh" . end-of-line))
+  :custom
+  (help-window-select t))
+(use-package info
+  :bind
+  (:map Info-mode-map
+        ("j" . next-line)
+        ("k" . previous-line)
+        ("l" . forward-char)
+        ("h" . backward-char)
+        ("H" . Info-up)
+        ("L" . Info-follow-nearest-node)))
 #+end_src
 *** viper
 #+begin_src emacs-lisp
@@ -662,52 +671,30 @@ fix why i'm getting error
   :custom
   (viper-mode t)
   :init
-  (setq viper-expert-level 5
-        viper-inhibit-startup-message t
+  (setq viper-inhibit-startup-message t
         viper-always t
+        viper-expert-level 5
         viper-case-fold-search t
         viper-want-ctl-h-help t
         viper-insert-state-cursor-color "red"
         viper-replace-overlay-cursor-color "red"
-        viper-ESC-moves-cursor-back nil
-        viper-ex-style-motion nil
+        viper-no-multiple-ESC t
         viper-vi-style-in-minibuffer nil)
-  ;; :bind 
-  ;; (:map viper-insert-global-user-map
-  ;;       ("C-w" . kill-region)
-  ;;       ("C-[" . viper-exit-insert-state))
-  ;; (:map viper-vi-global-user-map
-  ;;       ("C-y" . yank)
-  ;;       ("v"   . set-mark-command)
-  ;;       ("g h" . beginning-of-line)
-  ;;       ("g l" . end-of-line)
-  ;;       ("g g" . beginning-of-buffer)
-  ;;       ("g e" . end-of-buffer))
   :config
-  ;; basic
-  (define-key viper-insert-global-user-map "\C-w" 'kill-region)
-  (define-key viper-insert-global-user-map "\C-[" 'viper-exit-insert-state)
-  (define-key viper-vi-global-user-map "\C-y" 'yank)
-  (define-key viper-vi-global-user-map "v" 'set-mark-command)
-  ;; helix influence
-  (define-key viper-vi-global-user-map "gh" 'beginning-of-line)
-  (define-key viper-vi-global-user-map "gl" 'end-of-line)
-  (define-key viper-vi-global-user-map "gg" 'beginning-of-buffer)
-  (define-key viper-vi-global-user-map "ge" 'end-of-buffer)
-  ;; dired
-  (setq my-dired-vi-purist-map (make-sparse-keymap))
-  (define-key my-dired-vi-purist-map "k" 'viper-previous-line)
-  (define-key my-dired-vi-purist-map "j" 'viper-next-line)
-  (define-key my-dired-vi-purist-map "l" 'dired-find-file)
-  (define-key my-dired-vi-purist-map "h" 'dired-up-directory)
-  (define-key my-dired-vi-purist-map "dd" 'dired-flag-file-deletion)
-  (define-key my-dired-vi-purist-map "u" 'dired-unmark)
-  (viper-modify-major-mode 'dired-mode
-                           'emacs-state my-dired-vi-purist-map)
-)
+  ;; --- Basic keybindings ---
+  (define-key viper-insert-global-user-map (kbd "C-w") 'kill-region)
+  (define-key viper-insert-global-user-map (kbd "C-[") 'viper-exit-insert-state)
+  (define-key viper-vi-global-user-map (kbd "v") 'set-mark-command)
+  (define-key viper-vi-global-user-map (kbd "SPC") 'viper-ex)
+  (define-key viper-vi-global-user-map (kbd "RET") 'org-return)
+
+  ;; --- Helix-inspired navigation ---
+  (define-key viper-vi-global-user-map (kbd "gh") 'beginning-of-line)
+  (define-key viper-vi-global-user-map (kbd "gl") 'end-of-line)
+  (define-key viper-vi-global-user-map (kbd "gg") 'beginning-of-buffer)
+  (define-key viper-vi-global-user-map (kbd "G") 'end-of-buffer))
 #+end_src
 *** auto-complete
-capfs inbuilt
 #+begin_src emacs-lisp
 (use-package emacs
   :custom
@@ -749,57 +736,48 @@ capfs inbuilt
   )
 #+end_src
 ** external
-*** pulsar
-#+begin_src emacs-lisp
-(use-package pulsar
-  :custom
-  (pulsar-face 'pulsar-red)
-  (pulsar-global-mode t))
-#+end_src
 *** emms
 #+begin_src emacs-lisp
 (use-package emms
+  :hook (emms-playlist-mode . hl-line-mode)
   :preface
-  (require 'emms-playlist-mode) ; Forces the built-in library to load
-  (require 'emms-player-simple)
+  (require 'emms-setup)
   (require 'emms-source-file)
   (require 'emms-source-playlist)
-  (emms-minimalistic)
+  (require 'emms-player-simple)
+  (require 'emms-player-mpv)
+  (require 'emms-playlist-mode)
+  (require 'emms-browser)
+  (require 'emms-show-all)
   :bind
-  (("C-c m m" . emms)
-   ("C-c m p" . emms-pause)
-   ("C-c m n" . emms-next)
-   ("C-c m N" . emms-previous)
-   ("C-c m f" . emms-add-directory)
-   :map emms-playlist-mode-map
-   ("l" . emms-playlist-mode-play-smart)
-   ("j" . next-line)
-   ("k" . previous-line))
+  ("C-c m" . emms)
+  (:map emms-playlist-mode-map
+        ("j" . next-line)
+        ("k" . previous-line)
+        ("p" . emms-pause)
+        ("l" . emms-playlist-mode-play-smart)
+        ("h" . quit-window))
   :custom
+  (emms-source-file-default-directory "~/silence/night")
   (emms-repeat-playlist t)
-  (emms-source-file-default-directory "~/silence/hollow/")
-  (emms-history-file nil)
-  (emms-cache-file nil)
-  (emms-player-mpv-parameters '("--quiet" "--really-quiet" "--no-audio-display" "--speed=1"))
-  (emms-player-list '(emms-player-mpg321
-                      emms-player-ogg123
-                      emms-player-mpv)))
+  (emms-player-list '(emms-player-mpv))
+  (emms-player-mpv-parameters '("--quiet"
+                                "--really-quiet"
+                                "--no-audio-display"
+                                "--speed=1")))
 #+end_src
 *** flash cards
 #+begin_src emacs-lisp
 (use-package org-drill)
 #+end_src
 *** ledger-mode
-ledger mode map
 #+begin_src emacs-lisp
 (use-package ledger-mode
   :mode ("\\.dat$" . ledger-mode)
-  ;; :hook (before-save-hook . ledger-mode-clean-buffer)
   :custom
   (ledger-complete-in-steps t))
 #+end_src
 *** games
-idk why stockfish isn't playing
 #+begin_src emacs-lisp
 (use-package chess
   :custom
@@ -826,13 +804,8 @@ idk why stockfish isn't playing
    ("C-c g s" . gptel-send))
   :custom
   (gptel-default-mode #'org-mode)
-  (gptel-model 'liquid/lfm-2.5-1.2b-thinking:free)
+  (gptel-model 'gemini-2.5-flash)
   :config
-  ;; gemini
-  (setq gptel-backend
-        (gptel-make-gemini "Gemini"
-                           :key (auth-source-pick-first-password :host "gemini.google")
-                           :stream t))
   ;; ollama
   (setq gptel-backend
         (gptel-make-ollama "Ollama"
@@ -852,6 +825,11 @@ idk why stockfish isn't playing
                                      upstage/solar-pro-3:free
                                      nvidia/nemotron-3-nano-30b-a3b:free
                                      stepfun/step-3.5-flash:free)))
+  ;; gemini
+  (setq gptel-backend
+        (gptel-make-gemini "Gemini"
+                           :key (auth-source-pick-first-password :host "gemini.google")
+                           :stream t))
   )
 #+end_src
 *** rust
