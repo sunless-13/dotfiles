@@ -72,8 +72,7 @@
     "aspell"
     ;; doc-view dependencies
     "mupdf" 
-    "unoconv"
-    ;; "libreoffice"
+    "libreoffice"
     ;; apps
     "chess"    
     "ledger"

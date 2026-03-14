@@ -371,6 +371,10 @@ i'm using guix so i don't need to download packages normally
 (use-package prog-mode
   :custom
   (global-prettify-symbols-mode t))
+
+;; (use-package ede
+;;   :custom
+;;   (global-ede-mode t))
 #+end_src
 *** elec-pair
 #+begin_src emacs-lisp
@@ -440,7 +444,6 @@ i'm using guix so i don't need to download packages normally
 *** ibuffer
 #+begin_src emacs-lisp
 (use-package ibuffer
-  :bind ("C-x C-b" . ibuffer)
   :hook
   ((ibuffer-mode . hl-line-mode)
    (ibuffer-mode . guix-prettify-mode)
@@ -471,9 +474,7 @@ i'm using guix so i don't need to download packages normally
 (use-package eshell
   :hook (eshell-load . eat-eshell-mode)
   :custom
-  (eshell-banner-message "")
-  :bind
-  ("C-c s" . eshell))
+  (eshell-banner-message ""))
 #+end_src
 *** COMMENT gnus
 test sending and receiving email
@@ -515,7 +516,7 @@ use as rss reader
       ;; :channels ("#guix")
       :port 6697
       :encryption tls)))
-  (rcirc-default-full-name "Darkness blinds as the Light")
+  (rcirc-default-full-name "sunless")
   (rcirc-cycle-completion-flag t)
   (rcirc-track-minor-mode t)
   (rcirc-fill-column 'frame-text-width)
@@ -540,12 +541,11 @@ use as rss reader
   :hook
   (newsticker-mode . imenu-add-menubar-index)
   :bind
-  (("C-c n" . newsticker-show-news)
-   :map newsticker-mode-map
+  (:map newsticker-mode-map
    ("J" . newsticker-next-feed)
-   ("j" . newsticker-next-item)
+   ("j" . next-line)
    ("K" . newsticker-previous-feed)
-   ("k" . newsticker-previous-item)
+   ("k" . previous-line)
    ("l" . newsticker-show-entry)
    ("L" . newsticker-show-all-desc)
    ("h" . newsticker-hide-entry)
@@ -613,6 +613,23 @@ use as rss reader
 (use-package browse-url
   :custom
   (browse-url-browser-function 'eww-browse-url))
+(use-package webjump
+  :custom
+  (webjump-sites
+   '(("Emacs Wiki" . [simple-query "https://www.emacswiki.org"
+                                   "https://www.emacswiki.org/cgi-bin/wiki/" ""])
+     ("DuckDuckGo" . [simple-query "https://duckduckgo.com"
+                                   "https://duckduckgo.com/?q=" ""])
+     ("Wikipedia" . [simple-query "https://wikipedia.org"
+                                  "https://wikipedia.org/wiki/" ""])
+     ("Association for Computing Machinery" . "https://www.acm.org")
+     ("Computer Professionals for Social Responsibility" . "http://www.cpsr.org")
+     ("Electronic Frontier Foundation" . "https://www.eff.org")
+     ("IEEE Computer Society" . "https://www.computer.org")
+     ("Risks Digest" . webjump-to-risks)
+     ("Supplemental Web site list for webjump" . "https://www.neilvandyke.org/webjump/")
+     )
+   ))
 (use-package eww
   :bind
   (:map eww-mode-map
@@ -639,8 +656,9 @@ use as rss reader
         ("g" . doc-view-first-page)
         ("G" . doc-view-last-page))
   :custom
-  (doc-view-odf->pdf-converter-program "unoconv")
-  (doc-view-pdfdraw-program "mutool"))
+  (doc-view-odf->pdf-converter-program "soffice")
+  (doc-view-pdfdraw-program "mutool")
+  )
 #+end_src
 *** help
 #+begin_src emacs-lisp
@@ -685,8 +703,28 @@ use as rss reader
   (define-key viper-insert-global-user-map (kbd "C-w") 'kill-region)
   (define-key viper-insert-global-user-map (kbd "C-[") 'viper-exit-insert-state)
   (define-key viper-vi-global-user-map (kbd "v") 'set-mark-command)
-  (define-key viper-vi-global-user-map (kbd "SPC") 'viper-ex)
   (define-key viper-vi-global-user-map (kbd "RET") 'org-return)
+  ;; --- ede keybindings ---
+  (define-key viper-vi-global-user-map (kbd "gd") 'xref-find-references)
+  (define-key viper-vi-global-user-map (kbd "ga") 'eglot-code-actions)
+
+  ;; --- basic space keybindings ---
+  (define-key viper-vi-global-user-map (kbd "SPC s") 'save-some-buffers)
+  (define-key viper-vi-global-user-map (kbd "SPC f") 'find-file)
+  (define-key viper-vi-global-user-map (kbd "SPC SPC") 'switch-to-buffer)
+  (define-key viper-vi-global-user-map (kbd "SPC x") 'execute-extended-command)
+   ;; --- vc keybindings ---
+  (define-key viper-vi-global-user-map (kbd "SPC v d") 'vc-dir)
+  (define-key viper-vi-global-user-map (kbd "SPC v v") 'vc-next-action)
+  ;; --- project keybindings ---
+  (define-key viper-vi-global-user-map (kbd "SPC p f") 'project-find-file)
+  (define-key viper-vi-global-user-map (kbd "SPC p d") 'project-find-dir)
+  ;; --- packages keybindings ---
+  (define-key viper-vi-global-user-map (kbd "SPC e") 'eshell)
+  (define-key viper-vi-global-user-map (kbd "SPC m") 'emms)
+  (define-key viper-vi-global-user-map (kbd "SPC n") 'newsticker-show-news)
+  (define-key viper-vi-global-user-map (kbd "SPC i") 'irc)
+  (define-key viper-vi-global-user-map (kbd "SPC w") 'webjump)
 
   ;; --- Helix-inspired navigation ---
   (define-key viper-vi-global-user-map (kbd "gh") 'beginning-of-line)
@@ -716,8 +754,7 @@ use as rss reader
   (completion-styles '(partial-completion flex initials))
   (completions-sort 'historical))
 (use-package icomplete
-  ;; :hook (after-init . fido-vertical-mode)
-  :hook (after-init . fido-mode)
+  :hook (after-init . fido-vertical-mode)
   :bind
   (:map icomplete-minibuffer-map
         ("C-n" . icomplete-forward-completions)
@@ -726,14 +763,13 @@ use as rss reader
   :custom
   (icomplete-prospects-height 1)
   (icomplete-in-buffer t)
-  ;; (icomplete-compute-delay 0)
-  ;; (icomplete-show-matches-on-no-input t)
-  ;; (icomplete-scroll t)
-  ;; (icomplete-vertical-in-buffer-adjust-list t)
+  (icomplete-compute-delay 0)
+  (icomplete-show-matches-on-no-input t)
+  (icomplete-scroll t)
+  (icomplete-vertical-in-buffer-adjust-list t)
   :config
   (advice-add 'completion-at-point
-              :after #'minibuffer-hide-completions)
-  )
+              :after #'minibuffer-hide-completions))
 #+end_src
 ** external
 *** emms
@@ -750,7 +786,6 @@ use as rss reader
   (require 'emms-browser)
   (require 'emms-show-all)
   :bind
-  ("C-c m" . emms)
   (:map emms-playlist-mode-map
         ("j" . next-line)
         ("k" . previous-line)
@@ -758,7 +793,7 @@ use as rss reader
         ("l" . emms-playlist-mode-play-smart)
         ("h" . quit-window))
   :custom
-  (emms-source-file-default-directory "~/silence/night")
+  (emms-source-file-default-directory "~/silence/night/")
   (emms-repeat-playlist t)
   (emms-player-list '(emms-player-mpv))
   (emms-player-mpv-parameters '("--quiet"
